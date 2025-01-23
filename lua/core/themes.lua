@@ -11,14 +11,14 @@ local M = {}
 -- "Monoisome:h12",
 -- "MonacoLigaturized:h12",
 -- "Sarasa_Nerd:h12", -- 同名：等距更纱黑体_SC:h12
--- "Noto_Sans_Mono_CJK_SC:h12",
 -- "Hasklig:h12" -- 从SourceCodePro衍生，增加连字符
+-- "Noto_Sans_Mono_CJK_SC,等距更纱黑体_SC:h11",
 local fonts = {
 	"SauceCodePro_NFM,等距更纱黑体_SC:h11", -- 英文字体显小，显得中文字体过大
 	"JetBrainsMono_NF,等距更纱黑体_SC:h11",
 	"FiraCode_Nerd_Font,等距更纱黑体_SC:h11",
 	"Iosevka_NFM,霞鹜文楷等宽:h12", -- 中文版即为Sarasa（等距更纱黑体）
-	"Hack_Nerd_Font_Mono,等距更纱黑体_SC:h11",
+	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h11",
 	"CasCadia_Code_NF,霞鹜文楷等宽:h11",
 	"CommitMono_Nerd_Font,等距更纱黑体_SC:h11", -- 以Fira Code和JetBrains Mono为灵感制作
 	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
@@ -42,7 +42,7 @@ local themes = {
 	"rose-pine",
 }
 
--- 设置随机数种子，原因是不知为何每次启动math.random()都返回固定值
+-- 设置随机数种子，不知为何每次启动math.random()都返回固定值
 math.randomseed(os.time())
 
 -- 字体、颜色索引，lua中数组下标从1开始
@@ -87,7 +87,11 @@ M.show_theme = function(flag)
 	end
 
 	if info ~= "" then
-		vim.notify(string.sub(info, 1, #info - 1))
+		-- 剔除字体名称中的_Nerd类似后缀
+		info = string.gsub(info, "_[%w]+", "")
+		-- 删除最后一个多余的换行符
+		info = string.sub(info, 1, #info - 1)
+		vim.notify(info)
 	end
 end
 

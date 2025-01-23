@@ -110,7 +110,16 @@ return { -- NOTE: Yes, you can install new plugins here!
 		require("nvim-dap-virtual-text").setup()
 
 		-- python调试客户端
-		require("dap-python").setup("python")
+		local dap_python = require("dap-python")
+
+		-- local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
+		-- local debugpy_path = mason_path .. "packages/debugpy/venv/Scripts/python"
+		local debugpy_path = "python"
+		dap_python.setup(debugpy_path)
+
+		-- Debug adapter didn't respond. Either the adapter is slow ...
+		-- https://github.com/mfussenegger/nvim-dap/discussions/846
+		-- dap_python.default_port = 38000
 
 		-- dap.configurations.python = {
 		-- 	{

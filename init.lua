@@ -1,3 +1,4 @@
+---@diagnostic disable: missing-fields
 -- 20241030 luocm 整合kickstart配置脚本，清理部分插件（lspsaga、trouble、none-ls、lualine等）
 -- 20241101 luocm 清除nvim-surround，用mini.surround代替
 -- 20241101 luocm telescope中增加delete_buffer按键映射
@@ -39,11 +40,6 @@ local plugins = {
 				sections = {
 					-- 状态栏c段显示navic代码导航信息，此处基于官方配置进行了改写
 					lualine_c = {
-						{ -- 宏录制状态提示，类似于recording @q
-							require("noice").api.status.mode.get,
-							cond = require("noice").api.status.mode.has,
-							color = { fg = "#ff9e64" },
-						},
 						"filename",
 						{ -- navic代码导航
 							function()
@@ -67,6 +63,15 @@ local plugins = {
 						-- 	end,
 						-- 	cond = nil,
 						-- },
+					},
+					lualine_x = { -- 去掉'fileformat'（目前只有windows、linux图标）
+						{ -- 宏录制状态提示，类似于recording @q
+							require("noice").api.status.mode.get,
+							cond = require("noice").api.status.mode.has,
+							color = { fg = "#ff9e64" },
+						},
+						"encoding",
+						"filetype",
 					},
 				},
 			})
@@ -169,10 +174,10 @@ local plugins = {
 	-- 		-- vim.g.matchup_matchparen_offscreen = { method = "popup" }
 	-- 	end,
 	-- },
-	{ -- 交换列表、函数中元素
-		"mizlan/iswap.nvim",
-		event = "VeryLazy",
-	},
+	-- { -- 交换列表、函数中元素（用mini.operators中gx功能替换）
+	-- 	"mizlan/iswap.nvim",
+	-- 	event = "VeryLazy",
+	-- },
 	{ -- Main LSP Configuration
 		"neovim/nvim-lspconfig",
 		-- event = "VeryLazy",
@@ -237,8 +242,8 @@ local plugins = {
 					-- In this case, we create a function that lets us more easily define mappings specific
 					-- for LSP related items. It sets the mode, buffer and description for us each time.
 					local map = function(keys, func, desc, mode)
-						mode = mode or "n"
-						vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+						mode = mode or "n" -- desc = "LSP: " .. desc
+						vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = desc })
 					end
 
 					-- Jump to the definition of the word under your cursor.
@@ -330,7 +335,7 @@ local plugins = {
 					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
 						map("<leader>ch", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
-						end, "[h]ints toggle")
+						end, "[h]int toggle")
 					end
 
 					-- 增加navic代码导航栏（绑定后供winbar、statusline等控件使用）
@@ -338,10 +343,10 @@ local plugins = {
 						require("nvim-navic").attach(client, event.buf)
 					end
 
-					-- sqls插件绑定
-					if client and client.name == "sqls" then
-						require("sqls").on_attach(client, event.buf)
-					end
+					-- sqls数据库插件绑定
+					-- if client and client.name == "sqls" then
+					-- 	require("sqls").on_attach(client, event.buf)
+					-- end
 
 					-- java jdtls额外命令
 					if client and client.name == "jdtls" then
@@ -399,22 +404,22 @@ local plugins = {
 						},
 					},
 				},
-				sqls = {
-					settings = {
-						sqls = { -- https://github.com/sqls-server/sqls
-							connections = {
-								{
-									driver = "mysql",
-									dataSourceName = "root:root@tcp(127.0.0.1:3306)/world",
-								},
-								{
-									driver = "postgresql",
-									dataSourceName = "host=127.0.0.1 port=15432 user=postgres password=mysecretpassword1234 dbname=dvdrental sslmode=disable",
-								},
-							},
-						},
-					},
-				},
+				-- sqls = {
+				-- 	settings = {
+				-- 		sqls = { -- https://github.com/sqls-server/sqls
+				-- 			connections = {
+				-- 				{
+				-- 					driver = "mysql",
+				-- 					dataSourceName = "root:root@tcp(127.0.0.1:3306)/world",
+				-- 				},
+				-- 				{
+				-- 					driver = "postgresql",
+				-- 					dataSourceName = "host=127.0.0.1 port=15432 user=postgres password=mysecretpassword1234 dbname=dvdrental sslmode=disable",
+				-- 				},
+				-- 			},
+				-- 		},
+				-- 	},
+				-- },
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -498,6 +503,14 @@ local plugins = {
 			"hrsh7th/cmp-buffer",
 			"hrsh7th/cmp-cmdline",
 			-- "f3fora/cmp-spell", -- 拼写提示，中文注释也显示spell红色波浪线
+			{ -- nvim-dbee补全插件
+				"MattiasMTS/cmp-dbee",
+				dependencies = {
+					{ "kndndrj/nvim-dbee" },
+				},
+				ft = "sql", -- optional but good to have
+				opts = {}, -- needed
+			},
 
 			"onsails/lspkind-nvim", -- 自动补全分类小图标
 		},
@@ -530,6 +543,9 @@ local plugins = {
 					["<C-f>"] = cmp.mapping.scroll_docs(4),
 
 					-- Accept (<c-y>[y]es) the completion.
+					-- Accept multi-line completion
+					["<c-y>"] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Insert, select = false }),
+
 					--  This will auto-import if your LSP supports it.
 					--  This will expand snippets if the LSP sent a snippet.
 					["<CR>"] = cmp.mapping.confirm({ select = true }),
@@ -569,16 +585,16 @@ local plugins = {
 					--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
 				}),
 				sources = {
-					{
-						-- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
-						name = "lazydev",
-						group_index = 0,
-					},
+					-- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
+					{ name = "lazydev", group_index = 0 },
 					{ name = "luasnip" },
-					{ name = "buffer" },
-					{ name = "cmp_tabnine" },
 					{ name = "nvim_lsp" },
+					{ name = "buffer" },
 					{ name = "path" },
+					{ name = "cmp-dbee" },
+					{ name = "fittencode", group_index = 1 },
+					-- { name = "codeium" },
+					-- { name = "cmp_tabnine" },
 					-- 黑白色，没有lsp_signature彩色效果
 					-- { name = "nvim_lsp_signature_help" },
 					-- { -- 拼写检查
@@ -632,18 +648,96 @@ local plugins = {
 		end,
 	},
 
-	{ -- 写代码AI辅助
-		"tzachar/cmp-tabnine",
-		event = "InsertEnter",
-		build = "powershell ./install.ps1",
-		dependencies = "hrsh7th/nvim-cmp",
+	-- { -- 写代码AI辅助
+	-- 	"tzachar/cmp-tabnine",
+	-- 	event = "InsertEnter",
+	-- 	build = "powershell ./install.ps1",
+	-- 	dependencies = "hrsh7th/nvim-cmp",
+	-- },
+	{ -- AI辅助
+		"luozhiya/fittencode.nvim",
+		config = function()
+			require("fittencode").setup({
+				completion_mode = "source",
+			})
+		end,
 	},
-
+	{ -- 类似CursorIDE的AI插件
+		"yetone/avante.nvim",
+		event = "VeryLazy",
+		lazy = false,
+		version = false, -- set this if you want to always pull the latest change
+		opts = {
+			provider = "openai",
+			auto_suggestions_provider = "openai", -- Since auto-suggestions are a high-frequency operation and therefore expensive, it is recommended to specify an inexpensive provider or even a free provider: copilot
+			openai = {
+				endpoint = "https://api.deepseek.com/v1",
+				model = "deepseek-chat",
+				timeout = 30000, -- Timeout in milliseconds
+				temperature = 0,
+				max_tokens = 4096,
+				-- optional
+				api_key_name = "OPENAI_API_KEY", -- default OPENAI_API_KEY if not set
+			},
+		},
+		-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+		-- build = "make",
+		build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false", -- for windows
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"stevearc/dressing.nvim",
+			"nvim-lua/plenary.nvim",
+			"MunifTanjim/nui.nvim",
+			--- The below dependencies are optional,
+			"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+			"zbirenbaum/copilot.lua", -- for providers='copilot'
+			{
+				-- support for image pasting
+				"HakonHarnes/img-clip.nvim",
+				event = "VeryLazy",
+				opts = {
+					-- recommended settings
+					default = {
+						embed_image_as_base64 = false,
+						prompt_for_file_name = false,
+						drag_and_drop = {
+							insert_mode = true,
+						},
+						-- required for Windows users
+						use_absolute_path = true,
+					},
+				},
+			},
+			{
+				-- Make sure to set this up properly if you have lazy=true
+				"MeanderingProgrammer/render-markdown.nvim",
+				opts = {
+					file_types = { "markdown", "Avante" },
+				},
+				ft = { "markdown", "Avante" },
+			},
+		},
+	},
+	-- { -- codeium
+	-- 	"Exafunction/codeium.nvim",
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim",
+	-- 		"hrsh7th/nvim-cmp",
+	-- 	},
+	-- 	config = function()
+	-- 		require("codeium").setup({})
+	-- 	end,
+	-- },
 	-- "hrsh7th/cmp-nvim-lsp-signature-help",
 	{ -- 函数签名提醒
 		"ray-x/lsp_signature.nvim",
 		-- event = "VeryLazy",
-		-- opts = {},
+		opts = {
+			bind = true,
+			handler_opts = {
+				border = "rounded",
+			},
+		},
 		config = function(_, opts)
 			require("lsp_signature").setup(opts)
 		end,
@@ -651,7 +745,41 @@ local plugins = {
 
 	--其他lsp服务
 	"mfussenegger/nvim-jdtls", -- java代码lsp增强（eclipse.jdt.ls）
-	"nanotee/sqls.nvim", -- sql服务器
+
+	-- "nanotee/sqls.nvim", -- sql服务器（仅支持mysql少量数据库）
+	-- { -- 数据库访问终端DBUI
+	-- 	"kristijanhusak/vim-dadbod-ui",  -- 实测不好用
+	-- 	dependencies = {
+	-- 		{ "tpope/vim-dadbod", lazy = true },
+	-- 		{ "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true }, -- Optional
+	-- 	},
+	-- 	cmd = {
+	-- 		"DBUI",
+	-- 		"DBUIToggle",
+	-- 		"DBUIAddConnection",
+	-- 		"DBUIFindBuffer",
+	-- 	},
+	-- 	init = function()
+	-- 		-- Your DBUI configuration
+	-- 		vim.g.db_ui_use_nerd_fonts = 1
+	-- 	end,
+	-- },
+	{ -- dbee数据库UI终端
+		"kndndrj/nvim-dbee",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+		},
+		build = function()
+			-- Install tries to automatically detect the install method.
+			-- if it fails, try calling it with one of these parameters:
+			--    "curl", "wget", "bitsadmin", "go"
+			-- 这一步如果未被Mason调用，则手动执行下
+			require("dbee").install("go")
+		end,
+		config = function()
+			require("dbee").setup(--[[optional config]])
+		end,
+	},
 
 	-- lua LSP
 	{ -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
@@ -704,12 +832,13 @@ local plugins = {
 			end,
 			formatters_by_ft = {
 				lua = { "stylua" },
-				python = { "ruff" },
+				python = { "ruff", format_on_save = false },
 				-- Conform can also run multiple formatters sequentially
 				-- python = { "isort", "black" },
 				--
 				-- You can use 'stop_after_first' to run the first available formatter from the list
 				-- javascript = { "prettierd", "prettier", stop_after_first = true },
+				markdown = { "prettierd" },
 			},
 		},
 	},
@@ -718,7 +847,7 @@ local plugins = {
 		event = "VeryLazy",
 		opts = {
 			-- lsp = { auto_attach = true },
-			depth_limit = 3,
+			depth_limit = 2,
 		},
 		dependencies = { "neovim/nvim-lspconfig" },
 	},
@@ -801,7 +930,7 @@ local plugins = {
 			-- Better Around/Inside textobjects
 			--
 			-- Examples:
-			--  - va)  - [V]isually select [A]round [)]paren
+			--  - va)  - --[[ [V] ]]isually select [A]round [)]paren
 			--  - yinq - [Y]ank [I]nside [N]ext [Q]uote
 			--  - ci'  - [C]hange [I]nside [']quote
 			require("mini.ai").setup({ n_lines = 500 })
@@ -852,6 +981,10 @@ local plugins = {
 			-- 光标位置文字高亮
 			require("mini.cursorword").setup()
 
+			-- 尾随空格高亮及删除
+			require("mini.trailspace").setup()
+
+			-- 当前位置缩进提示
 			require("mini.indentscope").setup({
 				mappings = {
 					-- indent跳转，不要占用[i/]i系统预定义按键
@@ -859,6 +992,13 @@ local plugins = {
 					goto_bottom = "]e",
 				},
 				symbol = ".",
+			})
+
+			-- 操作符保留默认的exchange和sort，分别对应gx和gs快捷键，其余弃用
+			require("mini.operators").setup({
+				evaluate = { prefix = "" }, -- 默认为g=
+				multiply = { prefix = "" }, -- 默认为gm
+				replace = { prefix = "" }, -- 默认为gr
 			})
 
 			-- 补全辅助，动态提示函数参数，和cmp集成有bug
@@ -1024,10 +1164,12 @@ local plugins = {
 			-- Enable Telescope extensions if they are installed
 			pcall(require("telescope").load_extension, "fzf")
 			pcall(require("telescope").load_extension, "ui-select")
+			-- 集成nvim-notify控件，可执行:Telescope notify
+			pcall(require("telescope").load_extension, "notify")
 
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")
-			vim.keymap.set("n", "<leader>ds", builtin.diagnostics, { desc = "[s]earch diagnostic" })
+			vim.keymap.set("n", "<leader>cw", builtin.diagnostics, { desc = "[w]orkspace diagnostic" })
 			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "search [f]iles" })
 			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "search [g]rep" })
 			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "search [h]elp" })
@@ -1045,7 +1187,7 @@ local plugins = {
 					winblend = 10,
 					previewer = false,
 				}))
-			end, { desc = "[/] fuzzy current buffer" })
+			end, { desc = "[/] current buffer" })
 
 			-- It's also possible to pass additional configuration options.
 			--  See `:help telescope.builtin.live_grep()` for information about particular keys
@@ -1054,12 +1196,12 @@ local plugins = {
 					grep_open_files = true,
 					prompt_title = "Live Grep in Open Files",
 				})
-			end, { desc = "[/] in open files" })
+			end, { desc = "[/] open files" })
 
 			-- Shortcut for searching your Neovim configuration files
-			vim.keymap.set("n", "<leader>sn", function()
+			vim.keymap.set("n", "<leader>sv", function()
 				builtin.find_files({ cwd = vim.fn.stdpath("config") })
-			end, { desc = "search [n]eovim files" })
+			end, { desc = "search [v]im files" })
 		end,
 	},
 	{ -- flash闪电移动
@@ -1092,12 +1234,19 @@ local plugins = {
         },
 	},
 
-	{ -- toggleterm终端切换
+	{ -- 切换终端
 		"akinsho/toggleterm.nvim",
 		event = "VeryLazy",
 		version = "*",
 		config = true,
-		opts = {--[[ things you want to change go here]]
+		opts = {
+			size = function(term)
+				if term.direction == "horizontal" then
+					return 20
+				elseif term.direction == "vertical" then
+					return vim.o.columns * 0.5
+				end
+			end,
 		},
 	},
 	-- { -- 处理jk等escape类映射
@@ -1107,44 +1256,84 @@ local plugins = {
 	--     end
 	-- },
 
-	"tpope/vim-repeat", -- 增强.重复操作
-	"ethanholz/nvim-lastplace", -- 回到文件上次编辑位置
-	"nvim-pack/nvim-spectre", -- 查找替换插件
-	"Shatur/neovim-session-manager", -- 会话管理
-	-- { -- 自动会话管理，不能自动加载LastSession，无法正常恢复nvim-tree
-	-- 	"rmagatti/auto-session",
-	-- 	lazy = false,
-	-- 	keys = {
-	-- 		-- Will use Telescope if installed or a vim.ui.select picker otherwise
-	-- 		{ "<leader>wo", "<cmd>SessionSearch<CR>", desc = "[o]pen session" },
-	-- 		{ "<leader>ws", "<cmd>SessionSave<CR>", desc = "[s]ave session" },
-	-- 		{ "<leader>wt", "<cmd>SessionToggleAutoSave<CR>", desc = "[t]oggle session save" },
-	-- 	},
-	-- 	---enables autocomplete for opts
-	-- 	---@module "auto-session"
-	-- 	---@type AutoSession.Config
-	-- 	opts = {
-	-- 		suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-	-- 		-- log_level = 'debug',
-	-- 	},
+	-- { -- 折叠插件
+	-- 	"kevinhwang91/nvim-ufo",
+	-- 	event = "VeryLazy",
+	-- 	dependencies = { "kevinhwang91/promise-async" },
 	-- 	config = function()
-	-- 		require("auto-session").setup({
-	-- 			pre_save_cmds = {
-	-- 				"tabdo NvimTreeClose", -- Close NERDTree before saving session
-	-- 			},
-	-- 			post_restore_cmds = {
-	-- 				function()
-	-- 					-- Restore nvim-tree after a session is restored
-	-- 					-- 似乎有bug，恢复不到cwd目录！
-	-- 					-- local nvim_tree_api = require("nvim-tree.api")
-	-- 					-- nvim_tree_api.tree.open()
-	-- 					-- nvim_tree_api.tree.change_root(vim.fn.getcwd())
-	-- 					-- nvim_tree_api.tree.reload()
-	-- 				end,
-	-- 			},
+	-- 		require("ufo").setup({
+	-- 			-- performance and stability are better than `foldmethod=nvim_treesitter#foldexpr()`
+	-- 			provider_selector = function(bufnr, filetype, buftype)
+	-- 				return { "treesitter", "indent" }
+	-- 			end,
 	-- 		})
 	-- 	end,
 	-- },
+	-- { -- 折叠预览插件
+	-- 	"anuvyklack/fold-preview.nvim",
+	-- 	event = "VeryLazy",
+	-- 	dependencies = { "anuvyklack/keymap-amend.nvim" },
+	-- 	config = function()
+	-- 		require("fold-preview").setup({ auto = 400 })
+	-- 	end,
+	-- },
+
+	"tpope/vim-repeat", -- 增强.重复操作
+	"ethanholz/nvim-lastplace", -- 回到文件上次编辑位置
+	"nvim-pack/nvim-spectre", -- 查找替换插件
+	-- { -- 高亮感兴趣词
+	-- 	"Mr-LLLLL/interestingwords.nvim",
+	-- 	opts = {}, -- needed
+	-- },
+	{ -- 高亮感兴趣词
+		"azabiong/vim-highlighter",
+		init = function()
+			-- settings
+		end,
+	},
+	{ -- 高亮参数列表
+		"m-demare/hlargs.nvim",
+		opts = { use_colorpalette = true, sequential_colorpalette = true }, -- needed
+	},
+
+	{ -- latex文档编写
+		"lervag/vimtex",
+		lazy = false, -- we don't want to lazy load VimTeX
+		-- tag = "v2.15", -- uncomment to pin to a specific release
+		init = function()
+			-- VimTeX configuration goes here, e.g.
+			-- vim.g.vimtex_view_method = "zathura"
+		end,
+	},
+	{ -- markdown插件（md文件、tex公式）
+		"iamcco/markdown-preview.nvim",
+		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+		ft = { "markdown" },
+		build = function()
+			vim.fn["mkdp#util#install"]()
+		end,
+	},
+
+	-- "Shatur/neovim-session-manager", -- 会话管理，不稳定老报错
+	{ -- 自动会话管理，不能自动加载LastSession，无法正常恢复nvim-tree
+		"rmagatti/auto-session",
+		lazy = false,
+		keys = {
+			-- Will use Telescope if installed or a vim.ui.select picker otherwise
+			{ "<leader>wo", "<cmd>SessionSearch<CR>", desc = "[o]pen session" },
+			{ "<leader>ws", "<cmd>SessionSave<CR>", desc = "[s]ave session" },
+			{ "<leader>ts", "<cmd>SessionToggleAutoSave<CR>", desc = "toggle [s]ession save" },
+		},
+		---enables autocomplete for opts
+		---@module "auto-session"
+		---@type AutoSession.Config
+		opts = {
+			suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
+			-- log_level = 'debug',
+			auto_restore = false,
+			auto_create = false,
+		},
+	},
 
 	{ -- 除了nvim-notify之外，vim.notify可以采用fidget、mini.notify
 		"rcarriga/nvim-notify",
@@ -1215,12 +1404,14 @@ local plugins = {
 
 			-- Document existing key chains
 			spec = {
+				{ "<leader>a", group = "[a]vante" },
 				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
 				{ "<leader>d", group = "[d]iagnostic" },
 				{ "<leader>s", group = "[s]earch" },
 				{ "<leader>w", group = "[w]orkspace" },
 				{ "<leader>e", group = "[e]xtract", mode = { "n", "v" } },
-				{ "<leader>h", group = "git [h]unk", mode = { "n", "v" } },
+				{ "<leader>h", group = "[h]unk", mode = { "n", "v" } },
+				{ "<leader>t", group = "[t]oggle", mode = { "n", "v" } },
 			},
 		},
 	},
@@ -1304,7 +1495,7 @@ local plugins = {
 	-- 其他插件（来自于kickstart）
 	require("plug.debug"),
 	-- require("plug.lint"),
-	-- require("plug.gitsigns"), -- adds gitsigns recommend keymaps
+	require("plug.gitsigns"), -- adds gitsigns recommend keymaps
 
 	-- 用mini.indentscope替代
 	-- require("plug.indent_line"),

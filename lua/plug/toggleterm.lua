@@ -7,7 +7,7 @@ local M = {}
 -- 运行Python、java文件
 -- vim.api.nvim_set_keymap('n', '<leader>r', ":w<CR>:terminal python %<CR>", {noremap = true, silent = true})
 -- https://www.showapi.com/news/article/66b932394ddd79f11a2b9f36
-M.run_by_ft = function()
+M.run_file = function()
 	-- 当前buffer文件名
 	local filename = vim.api.nvim_buf_get_name(0)
 	-- 当前工作目录
@@ -33,7 +33,7 @@ M.run_by_ft = function()
 			cmd = cmd,
 			hidden = false,
 			start_in_insert = false,
-			direction = "horizontal",
+			direction = "vertical",
 			close_on_exit = false,
 			auto_scroll = false,
 			env = { PYTHONPATH = cwd },
