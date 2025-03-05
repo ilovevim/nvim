@@ -2,7 +2,7 @@
 -- 20241030 luocm 整合kickstart配置脚本，清理部分插件（lspsaga、trouble、none-ls、lualine等）
 -- 20241101 luocm 清除nvim-surround，用mini.surround代替
 -- 20241101 luocm telescope中增加delete_buffer按键映射
--- 20241111 luocm python lsp：pyright、pylyzer不支持stub，使用jedi
+-- 20241111 luocm python lsp：pyright、pylyzer不支持stub，使用jedi但最终换回pyright+ruff
 
 -- 前缀键
 vim.g.mapleader = " "
@@ -265,19 +265,19 @@ local plugins = {
 
 					-- Fuzzy find all the symbols in your current document.
 					--  Symbols are things like variables, functions, types, etc.
-					map("<leader>sd", require("telescope.builtin").lsp_document_symbols, "[d]ocument symbols")
+					map("<leader>sd", require("telescope.builtin").lsp_document_symbols, "symbol: [d]ocument")
 
 					-- Fuzzy find all the symbols in your current workspace.
 					--  Similar to document symbols, except searches over your entire project.
-					map("<leader>sw", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[w]orkspace symbols")
+					map("<leader>sw", require("telescope.builtin").lsp_dynamic_workspace_symbols, "symbol: [w]orkspace")
 
 					-- Rename the variable under your cursor.
 					--  Most Language Servers support renaming across files, etc.
-					map("<leader>cr", vim.lsp.buf.rename, "[r]ename symbol")
+					map("<leader>cr", vim.lsp.buf.rename, "code: [r]ename")
 
 					-- Execute a code action, usually your cursor needs to be on top of an error
 					-- or a suggestion from your LSP for this to activate.
-					map("<leader>ca", vim.lsp.buf.code_action, "[a]ction code", { "n", "x" })
+					map("<leader>ca", vim.lsp.buf.code_action, "code: [a]ction", { "n", "x" })
 
 					-- WARN: This is not Goto Definition, this is Goto Declaration.
 					--  For example, in C this would take you to the header.
@@ -290,11 +290,11 @@ local plugins = {
 					map("<c-n>", vim.lsp.buf.signature_help, "signature help")
 
 					-- 工作目录维护
-					map("<leader>wa", vim.lsp.buf.add_workspace_folder, "[a]dd workspace")
-					map("<leader>wr", vim.lsp.buf.remove_workspace_folder, "[r]emove workspace")
+					map("<leader>wa", vim.lsp.buf.add_workspace_folder, "workspace: [a]dd")
+					map("<leader>wr", vim.lsp.buf.remove_workspace_folder, "workspace: [r]emove")
 					map("<leader>wl", function()
 						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-					end, "[l]ist workspace")
+					end, "workspace: [l]ist")
 
 					map("gi", vim.lsp.buf.incoming_calls, "goto [i]ncoming_calls")
 					map("go", vim.lsp.buf.outgoing_calls, "goto [o]utming_calls")
@@ -321,9 +321,9 @@ local plugins = {
 
 						vim.api.nvim_create_autocmd("LspDetach", {
 							group = vim.api.nvim_create_augroup("kickstart-lsp-detach", { clear = true }),
-							callback = function(event2)
+							callback = function(event)
 								vim.lsp.buf.clear_references()
-								vim.api.nvim_clear_autocmds({ group = "kickstart-lsp-highlight", buffer = event2.buf })
+								vim.api.nvim_clear_autocmds({ group = "kickstart-lsp-highlight", buffer = event.buf })
 							end,
 						})
 					end
@@ -333,9 +333,9 @@ local plugins = {
 					--
 					-- This may be unwanted, since they displace some of your code
 					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-						map("<leader>ch", function()
+						map("<leader>ct", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
-						end, "[h]int toggle")
+						end, "code: [t]oggle hint")
 					end
 
 					-- 增加navic代码导航栏（绑定后供winbar、statusline等控件使用）
@@ -377,7 +377,19 @@ local plugins = {
 			local servers = {
 				-- clangd = {},
 				-- gopls = {},
-				-- pyright = {},
+				-- pyright = {
+				-- 	settings = {
+				-- 		pyright = {
+				-- 			disableOrganizeImports = true, -- 关闭自动整理导入
+				-- 			analysis = {
+				-- 				useLibraryCodeForTypes = true,
+				-- 				diagnosticSeverityOverrides = {
+				-- 					reportUnusedImport = "none", -- 禁用未使用导入的提示
+				-- 				},
+				-- 			},
+				-- 		},
+				-- 	},
+				-- },
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 				--
@@ -422,6 +434,17 @@ local plugins = {
 				-- },
 			}
 
+			-- You can add other tools here that you want Mason to install
+			-- for you, so that they are available from within Neovim.
+			local ensure_installed = vim.tbl_keys(servers or {})
+			vim.list_extend(ensure_installed, {
+				"stylua", -- Used to format Lua code
+				"lua_ls",
+				"pyright",
+				"ruff",
+				"jdtls",
+			})
+
 			-- Ensure the servers and tools above are installed
 			--  To check the current status of installed tools and/or manually install
 			--  other tools, you can run
@@ -437,19 +460,7 @@ local plugins = {
 					},
 				},
 			})
-
-			-- You can add other tools here that you want Mason to install
-			-- for you, so that they are available from within Neovim.
-			local ensure_installed = vim.tbl_keys(servers or {})
-			vim.list_extend(ensure_installed, {
-				"stylua", -- Used to format Lua code
-				"lua_ls",
-				"pyright",
-				"ruff",
-				"jdtls",
-			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
-
 			require("mason-lspconfig").setup({
 				handlers = {
 					function(server_name)
@@ -589,7 +600,17 @@ local plugins = {
 					{ name = "lazydev", group_index = 0 },
 					{ name = "luasnip" },
 					{ name = "nvim_lsp" },
-					{ name = "buffer" },
+					{
+						name = "buffer",
+						option = {
+							-- 扫描所有打开的Buffer（默认仅当前Buffer）
+							get_bufnrs = function()
+								return vim.api.nvim_list_bufs()
+							end,
+							-- 调整符号匹配规则（如允许下划线）
+							keyword_pattern = [[\%(-\?\d\+\%(\.\d\+\)\?\|\h\w*\%(-\w*\)*\)]],
+						},
+					},
 					{ name = "path" },
 					{ name = "cmp-dbee" },
 					{ name = "fittencode", group_index = 1 },
@@ -656,6 +677,7 @@ local plugins = {
 	-- },
 	{ -- AI辅助
 		"luozhiya/fittencode.nvim",
+		event = "VeryLazy",
 		config = function()
 			require("fittencode").setup({
 				completion_mode = "source",
@@ -685,7 +707,8 @@ local plugins = {
 		build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false", -- for windows
 		dependencies = {
 			"nvim-treesitter/nvim-treesitter",
-			"stevearc/dressing.nvim",
+			-- "stevearc/dressing.nvim",
+			-- "folke/snacks.nvim",
 			"nvim-lua/plenary.nvim",
 			"MunifTanjim/nui.nvim",
 			--- The below dependencies are optional,
@@ -744,6 +767,11 @@ local plugins = {
 	},
 
 	--其他lsp服务
+	{ -- pyright专用自动import工具（"alexpasmantier/pymple.nvim"需要安装gg和sed工具）
+		"stevanmilic/nvim-lspimport",
+		lazy = true,
+		ft = "python",
+	},
 	"mfussenegger/nvim-jdtls", -- java代码lsp增强（eclipse.jdt.ls）
 
 	-- "nanotee/sqls.nvim", -- sql服务器（仅支持mysql少量数据库）
@@ -781,6 +809,23 @@ local plugins = {
 		end,
 	},
 
+	-- { -- rest客户端（GET/POST请求），由于lua有5.1、5.4版本混乱导致build失败！
+	-- 	"rest-nvim/rest.nvim",
+	-- 	dependencies = {
+	-- 		"nvim-treesitter/nvim-treesitter",
+	-- 		opts = function(_, opts)
+	-- 			opts.ensure_installed = opts.ensure_installed or {}
+	-- 			table.insert(opts.ensure_installed, "http")
+	-- 		end,
+	-- 	},
+	-- },
+
+	{ -- rest客户端
+		"mistweaverco/kulala.nvim",
+		event = "VeryLazy",
+		opts = {},
+	},
+
 	-- lua LSP
 	{ -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
 		-- used for completion, annotations and signatures of Neovim apis
@@ -791,11 +836,11 @@ local plugins = {
 			library = {
 				-- Load luvit types when the `vim.uv` word is found
 				{ path = "luvit-meta/library", words = { "vim%.uv" } },
+				{ "nvim-dap-ui" },
 			},
 		},
 	},
 	{ "Bilal2453/luvit-meta", lazy = true },
-
 	"kosayoda/nvim-lightbulb", -- code action提示灯泡
 	{ -- Autoformat
 		"stevearc/conform.nvim",
@@ -809,7 +854,7 @@ local plugins = {
 					require("conform").format({ async = true, lsp_format = "fallback" })
 				end,
 				mode = "",
-				desc = "[f]ormat buffer",
+				desc = "code: [f]ormat",
 			},
 		},
 		opts = {
@@ -818,12 +863,10 @@ local plugins = {
 				-- Disable "format_on_save lsp_fallback" for languages that don't
 				-- have a well standardized coding style. You can add additional
 				-- languages here or re-enable it for the disabled ones.
-				local disable_filetypes = { c = true, cpp = true }
-				local lsp_format_opt
+				local disable_filetypes = { c = true, cpp = true, python = true }
+				local lsp_format_opt = "fallback"
 				if disable_filetypes[vim.bo[bufnr].filetype] then
 					lsp_format_opt = "never"
-				else
-					lsp_format_opt = "fallback"
 				end
 				return {
 					timeout_ms = 500,
@@ -958,8 +1001,9 @@ local plugins = {
 				search_method = "cover_or_next",
 			})
 			-- Remap adding surrounding to Visual mode selection
-			vim.keymap.del("x", "ys")
-			vim.keymap.set("x", "S", [[:<C-u>lua MiniSurround.add('visual')<CR>]], { silent = true })
+			-- vim.keymap.del("x", "ys")
+			-- vim.keymap.set("x", "M", [[:<C-u>lua MiniSurround.add('visual')<CR>]], { silent = true })
+
 			-- Make special mapping for "add surrounding for line"
 			vim.keymap.set("n", "yss", "ys_", { remap = true })
 
@@ -975,8 +1019,8 @@ local plugins = {
 			-- ]x/[x快速跳转缓冲区、代码位置等，会占用]I键，不方便
 			-- require("mini.bracketed").setup()
 
-			-- tabline插件
-			require("mini.tabline").setup({ tabpage_section = "none" })
+			-- tabline插件 tabpage_section = "none"
+			require("mini.tabline").setup({})
 
 			-- 光标位置文字高亮
 			require("mini.cursorword").setup()
@@ -999,6 +1043,7 @@ local plugins = {
 				evaluate = { prefix = "" }, -- 默认为g=
 				multiply = { prefix = "" }, -- 默认为gm
 				replace = { prefix = "" }, -- 默认为gr
+				sort = { prefix = "" }, -- 默认为gs
 			})
 
 			-- 补全辅助，动态提示函数参数，和cmp集成有bug
@@ -1044,6 +1089,7 @@ local plugins = {
 	},
 	{ -- git提交
 		"NeogitOrg/neogit",
+		event = "VeryLazy",
 		dependencies = {
 			"nvim-lua/plenary.nvim", -- required
 			"sindrets/diffview.nvim", -- optional - Diff integration
@@ -1057,7 +1103,7 @@ local plugins = {
 	},
 	{ -- telescope, Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
-		event = "VimEnter",
+		event = "VeryLazy",
 		-- branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
@@ -1114,8 +1160,8 @@ local plugins = {
 							["<C-t>"] = require("telescope.actions.layout").toggle_preview,
 						},
 					},
-					-- path_display = { shorten = { len = 2, exclude = { 1, -1 } } },
-					path_display = { truncate = 3 },
+					path_display = { shorten = { len = 2, exclude = { 1, 2, -2, -1 } } },
+					-- path_display = { truncate = 3 },
 					dynamic_preview_title = true,
 					-- trim the indentation at the beginning of presented line in the result window
 					vimgrep_arguments = {
@@ -1169,39 +1215,39 @@ local plugins = {
 
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")
-			vim.keymap.set("n", "<leader>cw", builtin.diagnostics, { desc = "[w]orkspace diagnostic" })
-			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "search [f]iles" })
-			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "search [g]rep" })
-			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "search [h]elp" })
-			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "search [k]eymaps" })
-			vim.keymap.set("n", "<leader>so", builtin.oldfiles, { desc = "search [o]ld files" })
-			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "search [r]esume" })
-			vim.keymap.set("n", "<leader>ss", builtin.grep_string, { desc = "search [s]tring" })
-			vim.keymap.set("n", "<leader>st", builtin.builtin, { desc = "search [t]elescope" })
-			vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "[ ] list buffers" })
+			vim.keymap.set("n", "<leader>dw", builtin.diagnostics, { desc = "diag: [w]orkspace" })
+			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "search: [f]ile" })
+			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "search: [g]rep" })
+			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "search: [h]elp" })
+			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "search: [k]eymap" })
+			vim.keymap.set("n", "<leader>so", builtin.oldfiles, { desc = "search: [o]ld file" })
+			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "search: [r]esume" })
+			vim.keymap.set("n", "<leader>ss", builtin.grep_string, { desc = "search: [s]tring" })
+			vim.keymap.set("n", "<leader>st", builtin.builtin, { desc = "search: [t]elescope" })
+			vim.keymap.set("n", "<leader>sb", builtin.buffers, { desc = "search: [b]uffer" })
 
 			-- Slightly advanced example of overriding default behavior and theme
-			vim.keymap.set("n", "<leader>/", function()
+			vim.keymap.set("n", "<leader>s/", function()
 				-- You can pass additional configuration to Telescope to change the theme, layout, etc.
 				builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
 					winblend = 10,
 					previewer = false,
 				}))
-			end, { desc = "[/] current buffer" })
+			end, { desc = "search: [/] buffer" })
 
 			-- It's also possible to pass additional configuration options.
 			--  See `:help telescope.builtin.live_grep()` for information about particular keys
-			vim.keymap.set("n", "<leader>s/", function()
+			vim.keymap.set("n", "<leader>sO", function()
 				builtin.live_grep({
 					grep_open_files = true,
 					prompt_title = "Live Grep in Open Files",
 				})
-			end, { desc = "[/] open files" })
+			end, { desc = "search: [O]pen file" })
 
 			-- Shortcut for searching your Neovim configuration files
 			vim.keymap.set("n", "<leader>sv", function()
 				builtin.find_files({ cwd = vim.fn.stdpath("config") })
-			end, { desc = "search [v]im files" })
+			end, { desc = "search: [v]im file" })
 		end,
 	},
 	{ -- flash闪电移动
@@ -1320,9 +1366,9 @@ local plugins = {
 		lazy = false,
 		keys = {
 			-- Will use Telescope if installed or a vim.ui.select picker otherwise
-			{ "<leader>wo", "<cmd>SessionSearch<CR>", desc = "[o]pen session" },
-			{ "<leader>ws", "<cmd>SessionSave<CR>", desc = "[s]ave session" },
-			{ "<leader>ts", "<cmd>SessionToggleAutoSave<CR>", desc = "toggle [s]ession save" },
+			{ "<leader>wo", "<cmd>SessionSearch<CR>", desc = "session: [o]pen" },
+			{ "<leader>ws", "<cmd>SessionSave<CR>", desc = "session: [s]ave" },
+			{ "<leader>wt", "<cmd>SessionToggleAutoSave<CR>", desc = "session: [t]oggle save" },
 		},
 		---enables autocomplete for opts
 		---@module "auto-session"
@@ -1406,12 +1452,12 @@ local plugins = {
 			spec = {
 				{ "<leader>a", group = "[a]vante" },
 				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
-				{ "<leader>d", group = "[d]iagnostic" },
+				{ "<leader>d", group = "[d]iagnose" },
 				{ "<leader>s", group = "[s]earch" },
 				{ "<leader>w", group = "[w]orkspace" },
 				{ "<leader>e", group = "[e]xtract", mode = { "n", "v" } },
 				{ "<leader>h", group = "[h]unk", mode = { "n", "v" } },
-				{ "<leader>t", group = "[t]oggle", mode = { "n", "v" } },
+				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
 			},
 		},
 	},
@@ -1534,5 +1580,6 @@ require("core.toggleime")
 
 -- 其他插件
 require("plug.autopairs")
--- require("plug.bufferline")
 require("plug.toggleterm")
+require("plug.filetype")
+-- require("plug.bufferline")

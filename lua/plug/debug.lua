@@ -33,16 +33,17 @@ return { -- NOTE: Yes, you can install new plugins here!
 		return {
 			-- Basic debugging keymaps, feel free to change to your liking!
 			{ "<F5>", dap.continue, desc = "debug: start/continue" },
+			{ "<C-F5>", dap.terminate, desc = "debug: terminate" },
 			{ "<F6>", dap.step_into, desc = "debug: step into" },
-			{ "<F7>", dap.step_over, desc = "debug: step over" },
 			{ "<C-F6>", dap.step_out, desc = "debug: step out" },
-			{ "<leader>cb", dap.toggle_breakpoint, desc = "debug: [b]reak toggle" },
+			{ "<F7>", dap.step_over, desc = "debug: step over" },
+			{ "<leader>db", dap.toggle_breakpoint, desc = "debug: [b]reak" },
 			{
-				"<leader>cB",
+				"<leader>dB",
 				function()
 					dap.set_breakpoint(vim.fn.input("breakpoint condition: "))
 				end,
-				desc = "debug: [B]reak set",
+				desc = "debug: [B]reak cond",
 			},
 			-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
 			{ "<F8>", dapui.toggle, desc = "debug: last session result" },
@@ -93,7 +94,8 @@ return { -- NOTE: Yes, you can install new plugins here!
 			},
 		})
 
-		dap.listeners.after.event_initialized["dapui_config"] = dapui.open
+		-- 不切换到dapui多个调试窗口，保持在源代码窗口
+		-- dap.listeners.after.event_initialized["dapui_config"] = dapui.open
 		dap.listeners.before.event_terminated["dapui_config"] = dapui.close
 		dap.listeners.before.event_exited["dapui_config"] = dapui.close
 
@@ -106,8 +108,8 @@ return { -- NOTE: Yes, you can install new plugins here!
             },
         }) ]]
 
-		-- debug虚拟文本
-		require("nvim-dap-virtual-text").setup()
+		-- debug虚拟文本设置，默认inline会影响debug状态下的代码阅读，改为结尾注释形式
+		require("nvim-dap-virtual-text").setup({ commented = true, virt_text_pos = "eol" })
 
 		-- python调试客户端
 		local dap_python = require("dap-python")

@@ -26,14 +26,22 @@ M.run_file = function()
 
 	local Terminal = require("toggleterm.terminal").Terminal
 	if cmd ~= "" then
-		-- print(cmd)
-		-- 环境变量env，给PYTHONPATH指定当前工作目录，避免python程序时报ModuleNotFound错误
 		-- direction支持horizontal、vertical、float、tab
+		direction = "vertical"
+
+		-- 如果竖屏则切换为水平方向堆叠（宽高比经验值2区分）
+		if (vim.o.columns / vim.o.lines) < 2 then
+			direction = "horizontal"
+		end
+
+		-- print(vim.o.columns, vim.o.lines, vim.o.columns / vim.o.lines, direction)
+
+		-- 环境变量env，给PYTHONPATH指定当前工作目录，避免python程序时报ModuleNotFound错误
 		local term = Terminal:new({
 			cmd = cmd,
 			hidden = false,
 			start_in_insert = false,
-			direction = "vertical",
+			direction = direction,
 			close_on_exit = false,
 			auto_scroll = false,
 			env = { PYTHONPATH = cwd },

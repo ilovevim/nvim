@@ -150,3 +150,9 @@ vim.diagnostic.config({
 
 -- vim-translator翻译插件，引擎剔除'google'，无法访问导致插件响应特别慢
 vim.g.translator_default_engines = { "bing", "haici", "youdao" }
+
+-- rest.nvim配置
+---@type rest.Opts
+vim.g.rest_nvim = {
+	-- ...
+}

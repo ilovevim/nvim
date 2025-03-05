@@ -11,9 +11,14 @@ keymap.set("n", "N", "<cmd>call HiSearch('N')<CR>")
 -- 小技巧：显示当前位置所属函数名，原理是往回匹配顶格字符（即无空格或tab前缀）
 -- keymap.set("n", "<c-g>", "<cmd>echo getline(search('\\v^[[:alpha:]$_]', 'bn', 1, 100))<CR>", { desc = "outer scope" })
 -- Diagnostic keymaps，[d、]d按键已经默认配置诊断上下跳转
-vim.keymap.set("n", "<leader>cd", vim.diagnostic.setloclist, { desc = "[d]ocument diagnostic" })
--- vim.keymap.set("n", "[e", vim.diagnostic.goto_prev, { desc = "diagnostic prev" })
--- vim.keymap.set("n", "]e", vim.diagnostic.goto_next, { desc = "diagnostic next" })
+keymap.set("n", "<leader>dd", vim.diagnostic.setloclist, { desc = "diag: [d]ocument" })
+keymap.set("n", "<leader>di", function()
+	vim.diagnostic.open_float({ header = "", scope = "line" })
+end, { desc = "diag: [i]nfo" })
+
+-- 诊断跳转键默认已映射到[d和]d（vim/_defaults.lua）
+vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, { desc = "diag: [p]rev" })
+vim.keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "diag: [n]ext" })
 
 -- 模式切换，jk在visual模式下容易被触发取消区域选择
 -- keymap.set("i", "jk", "<ESC>")
@@ -32,8 +37,8 @@ keymap.set("i", "<c-cr>", "<esc>gcc", { remap = true })
 keymap.set("n", "<c-c>", "<C-w>c") -- 关闭窗口
 
 -- 跳转到当前文件所属目录
--- keymap.set("n", "<A-j>", ':<c-r>=winnr()<cr>windo lcd <c-r>=expand("%:p:h")<cr>')
-keymap.set("n", "<A-j>", ':lcd <c-r>=expand("%:p:h")<cr>')
+-- keymap.set("n", "<A-j>", ':<c-r>=winnr()<cr>windo cd <c-r>=expand("%:p:h")<cr>')
+keymap.set("n", "<A-j>", ':cd <c-r>=expand("%:p:h")<cr>')
 
 -- 保存文件
 keymap.set("n", "\\w", "<cmd>update<cr>", { desc = "buffer update" })
@@ -50,7 +55,7 @@ keymap.set("n", "<S-F1>", "<cmd>NvimTreeFindFile!<CR>")
 keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>")
 
 -- mini.nvim
-keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "[m]ini.files" })
+keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "workspace: [m]ini.file" })
 -- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
 -- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
 
@@ -108,5 +113,5 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- dapui插件（计算表达式值）
-keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
+-- dapui插件（表达式求值）
+vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
