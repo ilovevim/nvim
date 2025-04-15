@@ -1,0 +1,9 @@
+snippet unitmain unittest file
+    import unittest
+
+    class ${1:Name}Test(unittest.TestCase):
+        def test(self):
+            ${2:pass}$0
+
+    if __name__ == "__main__":
+        unittest.main()

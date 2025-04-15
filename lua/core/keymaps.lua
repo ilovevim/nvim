@@ -52,7 +52,7 @@ keymap.set("n", "<S-F1>", "<cmd>NvimTreeFindFile!<CR>")
 
 -- 代码大纲（函数列表）
 -- keymap.set("n", "<F2>", ":Vista<CR>")
-keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>")
+-- keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>")
 
 -- mini.nvim
 keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "workspace: [m]ini.file" })

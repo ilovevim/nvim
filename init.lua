@@ -1,4 +1,3 @@
----@diagnostic disable: missing-fields
 -- 20241030 luocm 整合kickstart配置脚本，清理部分插件（lspsaga、trouble、none-ls、lualine等）
 -- 20241101 luocm 清除nvim-surround，用mini.surround代替
 -- 20241101 luocm telescope中增加delete_buffer按键映射
@@ -8,7 +7,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- 是否有nerd字体(init.lua中引用)
+-- 是否有nerd字体()
 vim.g.have_nerd_font = true
 
 -- [[ Install `lazy.nvim` plugin manager ]]
@@ -42,34 +41,30 @@ local plugins = {
 					lualine_c = {
 						"filename",
 						{ -- navic代码导航
-							function()
-								return require("nvim-navic").get_location()
-							end,
-							cond = function()
-								return require("nvim-navic").is_available()
-							end,
+							"navic",
+							-- Component specific options
+							color_correction = nil, -- Can be nil, "static" or "dynamic". This option is useful only when you have highlights enabled.
+							-- Many colorschemes don't define same backgroud for nvim-navic as their lualine statusline backgroud.
+							-- Setting it to "static" will perform a adjustment once when the component is being setup. This should
+							--   be enough when the lualine section isn't changing colors based on the mode.
+							-- Setting it to "dynamic" will keep updating the highlights according to the current modes colors for
+							--   the current section.
+
+							navic_opts = nil, -- lua table with same format as setup's option. All options except "lsp" options take effect when set here.
 						},
-						-- {
-						-- 	function()
-						-- 		local navic = require("nvim-navic")
-						-- 		local navinfo = ""
-						-- 		if navic.is_available() then
-						-- 			navinfo = navic.get_location()
-						-- 		end
-						-- 		if navinfo == "" then
-						-- 			navinfo = vim.fn.expand("%:t")
-						-- 		end
-						-- 		return navinfo
-						-- 	end,
-						-- 	cond = nil,
-						-- },
 					},
 					lualine_x = { -- 去掉'fileformat'（目前只有windows、linux图标）
-						{ -- 宏录制状态提示，类似于recording @q
+						{ -- 宏录制状态提示：recording @q
 							require("noice").api.status.mode.get,
 							cond = require("noice").api.status.mode.has,
 							color = { fg = "#ff9e64" },
 						},
+						-- { -- fittencode插件状态
+						-- 	function()
+						-- 		local emoji = { "🚫", "⏸️ ", "⌛️", "⚠️ ", "0️⃣ ", "✅" }
+						-- 		return "🅕 " .. emoji[require("fittencode").get_current_status()]
+						-- 	end,
+						-- },
 						"encoding",
 						"filetype",
 					},
@@ -151,8 +146,8 @@ local plugins = {
 				-- 不同括号颜色区分
 				rainbow = {
 					enable = true,
-					extended_mode = true,
-					max_file_lines = nil,
+					-- extended_mode = true,
+					-- max_file_lines = nil,
 				},
 
 				-- There are additional nvim-treesitter modules that you can use to interact
@@ -164,7 +159,8 @@ local plugins = {
 			})
 		end,
 	},
-	"p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
+	-- "p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
+	"HiPhish/rainbow-delimiters.nvim",
 	-- {
 	-- 	"andymass/vim-matchup",
 	-- 	init = function()
@@ -377,19 +373,48 @@ local plugins = {
 			local servers = {
 				-- clangd = {},
 				-- gopls = {},
-				-- pyright = {
-				-- 	settings = {
-				-- 		pyright = {
-				-- 			disableOrganizeImports = true, -- 关闭自动整理导入
-				-- 			analysis = {
-				-- 				useLibraryCodeForTypes = true,
-				-- 				diagnosticSeverityOverrides = {
-				-- 					reportUnusedImport = "none", -- 禁用未使用导入的提示
-				-- 				},
-				-- 			},
-				-- 		},
-				-- 	},
-				-- },
+
+				-- pyright侧重于类型检查，ruff负责lint、import、快速修复
+				-- https://microsoft.github.io/pyright/#/settings
+				pyright = {
+					settings = {
+						pyright = {
+							-- disableLanguageServices = false, -- 保持基础 LSP 功能
+							disableOrganizeImports = true, -- 关闭 Pyright 自带的 import 整理
+						},
+						python = {
+							analysis = {
+								-- useLibraryCodeForTypes = true,
+								-- diagnosticSeverityOverrides = {
+								-- 	reportUnusedImport = "none", -- 禁用未使用导入的提示
+								-- },
+								-- autoImportCompletions = true,
+								-- typeCheckingMode = "strict",
+								-- diagnosticMode = "workspace", -- 降低实时诊断频率
+								linting = { enabled = false }, -- 彻底关闭 Pyright 的 lint 功能
+
+								-- Ignore all files for analysis to exclusively use Ruff for linting
+								-- ignore = { "*" },
+							},
+						},
+					},
+				},
+
+				-- https://docs.astral.sh/ruff/editors/settings/
+				ruff = {
+					settings = {
+						init_options = {
+							settings = {
+								args = { "--fix-only", "--select=ALL" }, -- 全量规则 + 自动修复
+								organizeImports = true, -- 接管 imports 整理
+								lint = { enable = true },
+							},
+						},
+						-- 增强 Ruff 的代码操作优先级
+						-- capabilities = require("cmp_nvim_lsp").default_capabilities().textDocument.codeAction,
+					},
+				},
+
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 				--
@@ -442,7 +467,7 @@ local plugins = {
 				"lua_ls",
 				"pyright",
 				"ruff",
-				"jdtls",
+				-- "jdtls",
 			})
 
 			-- Ensure the servers and tools above are installed
@@ -469,7 +494,11 @@ local plugins = {
 						-- by the server configuration above. Useful when disabling
 						-- certain features of an LSP (for example, turning off formatting for ts_ls)
 						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
+
+						-- Mason中安装的LSP会逐个进入，为避免jdtls被二次启动此处跳过，改为在nvim-jdtls插件中配置
+						if server_name ~= "jdtls" then
+							require("lspconfig")[server_name].setup(server)
+						end
 					end,
 				},
 			})
@@ -499,7 +528,10 @@ local plugins = {
 					{
 						"rafamadriz/friendly-snippets",
 						config = function()
+							-- 默认片段文件
 							require("luasnip.loaders.from_vscode").lazy_load()
+							-- 自定义片段文件（snipmate格式）
+							require("luasnip.loaders.from_snipmate").lazy_load({ paths = "./snippets" })
 						end,
 					},
 				},
@@ -767,13 +799,129 @@ local plugins = {
 	},
 
 	--其他lsp服务
-	{ -- pyright专用自动import工具（"alexpasmantier/pymple.nvim"需要安装gg和sed工具）
-		"stevanmilic/nvim-lspimport",
-		lazy = true,
-		ft = "python",
-	},
-	"mfussenegger/nvim-jdtls", -- java代码lsp增强（eclipse.jdt.ls）
 
+	-- { -- pyright专用自动import工具，不好用！
+	-- 	"stevanmilic/nvim-lspimport",
+	-- 	lazy = true,
+	-- 	ft = "python",
+	-- },
+	-- { --pymple.nvim需要安装gg和sed工具
+	-- 	-- PympleBuild安装报错，可以采用cargo手工安装
+	-- 	"alexpasmantier/pymple.nvim",
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim",
+	-- 		"MunifTanjim/nui.nvim",
+	-- 		-- optional (nicer ui)
+	-- 		"stevearc/dressing.nvim",
+	-- 		"nvim-tree/nvim-web-devicons",
+	-- 	},
+	-- 	build = ":PympleBuild",
+	-- 	config = function()
+	-- 		require("pymple").setup()
+	-- 	end,
+	-- },
+	{ -- 集成到telescope中的import工具
+		"ilovevim/telescope-import.nvim",
+		dependencies = "nvim-telescope/telescope.nvim",
+		config = function()
+			require("telescope").load_extension("import")
+		end,
+		keys = {
+			{
+				"<leader>ci",
+				-- ":Telescope import<cr><c-r><c-w>", -- 底层不接受传参（比如当前位置单词）
+				"<cmd>Telescope import<cr>",
+				mode = "n",
+				desc = "code: [i]mport",
+			},
+		},
+	},
+	-- "relastle/vim-nayvy", -- windows上一直警告cannot load project
+	{
+		"mfussenegger/nvim-jdtls", -- java代码lsp增强（eclipse.jdt.ls）
+		dependencies = { "nvim-dap" },
+		ft = { "java" },
+		-- 参考https://github.com/mfussenegger/nvim-jdtls/wiki/Sample-Configurations
+		config = function()
+			local config = {
+				-- The command that starts the language server
+				-- See: https://github.com/eclipse/eclipse.jdt.ls#running-from-the-command-line
+				cmd = {
+					-- 💀
+					"java", -- or '/path/to/java21_or_newer/bin/java'
+					-- depends on if `java` is in your $PATH env variable and if it points to the right version.
+
+					"-Declipse.application=org.eclipse.jdt.ls.core.id1",
+					"-Dosgi.bundles.defaultStartLevel=4",
+					"-Declipse.product=org.eclipse.jdt.ls.core.product",
+					"-Dlog.protocol=true",
+					"-Dlog.level=ALL",
+					"-Xmx1g",
+					"--add-modules=ALL-SYSTEM",
+					"--add-opens",
+					"java.base/java.util=ALL-UNNAMED",
+					"--add-opens",
+					"java.base/java.lang=ALL-UNNAMED",
+
+					-- 💀
+					"-jar",
+					vim.fn.expand(
+						"~/AppData/Local/nvim-data/mason/packages/jdtls/plugins/org.eclipse.equinox.launcher_*.jar"
+					),
+					-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                       ^^^^^^^^^^^^^^
+					-- Must point to the                                                     Change this to
+					-- eclipse.jdt.ls installation                                           the actual version
+
+					-- 💀
+					"-configuration",
+					vim.fn.expand("~/AppData/Local/nvim-data/mason/packages/jdtls/config_win"),
+					-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        ^^^^^^
+					-- Must point to the                      Change to one of `linux`, `win` or `mac`
+					-- eclipse.jdt.ls installation            Depending on your system.
+
+					-- 💀
+					-- See `data directory configuration` section in the README
+					"-data",
+					vim.fn.expand("~/.cache/jdtls/workspace/"),
+				},
+
+				-- 💀
+				-- This is the default if not provided, you can remove it. Or adjust as needed.
+				-- One dedicated LSP server & client will be started per unique root_dir
+				--
+				-- vim.fs.root requires Neovim 0.10.
+				-- If you're using an earlier version, use: require('jdtls.setup').find_root({'.git', 'mvnw', 'gradlew'}),
+				root_dir = vim.fs.root(0, { ".git", "mvnw", "gradlew" }),
+
+				-- Here you can configure eclipse.jdt.ls specific settings
+				-- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
+				-- for a list of options
+				settings = {
+					java = {},
+				},
+
+				-- Language server `initializationOptions`
+				-- You need to extend the `bundles` with paths to jar files
+				-- if you want to use additional eclipse.jdt.ls plugins.
+				--
+				-- See https://github.com/mfussenegger/nvim-jdtls#java-debug-installation
+				--
+				-- If you don't plan on using the debugger or other eclipse.jdt.ls plugins you can remove this
+				init_options = {
+					bundles = {
+						vim.fn.glob(
+							"C:/Users/luocm/AppData/Local/nvim-data/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar",
+							1
+						),
+					},
+				},
+			}
+
+			-- This starts a new client & server,
+			-- or attaches to an existing client & server depending on the `root_dir`.
+			require("jdtls").start_or_attach(config)
+		end,
+	},
 	-- "nanotee/sqls.nvim", -- sql服务器（仅支持mysql少量数据库）
 	-- { -- 数据库访问终端DBUI
 	-- 	"kristijanhusak/vim-dadbod-ui",  -- 实测不好用
@@ -822,8 +970,16 @@ local plugins = {
 
 	{ -- rest客户端
 		"mistweaverco/kulala.nvim",
-		event = "VeryLazy",
-		opts = {},
+		keys = {
+			{ "<leader>Rs", desc = "Send request" },
+			{ "<leader>Ra", desc = "Send all requests" },
+			{ "<leader>Rb", desc = "Open scratchpad" },
+		},
+		ft = { "http", "rest" },
+		opts = {
+			-- your configuration comes here
+			global_keymaps = true,
+		},
 	},
 
 	-- lua LSP
@@ -922,6 +1078,7 @@ local plugins = {
 					-- Jump forwards/backwards with '{' and '}'
 					vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
 					vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
+					vim.keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>", { buffer = bufnr })
 				end,
 			})
 		end,
@@ -964,8 +1121,13 @@ local plugins = {
 			require("Comment").setup()
 		end,
 	},
-	"windwp/nvim-autopairs", -- 自动补全括号
-
+	{ -- 自动补全括号
+		"windwp/nvim-autopairs",
+		event = "InsertEnter",
+		config = true,
+		-- use opts = {} for passing setup options
+		-- this is equivalent to setup({}) function
+	},
 	{ -- mini插件Collection of various small independent plugins/modules
 		"echasnovski/mini.nvim",
 		event = "VimEnter",
@@ -1019,8 +1181,8 @@ local plugins = {
 			-- ]x/[x快速跳转缓冲区、代码位置等，会占用]I键，不方便
 			-- require("mini.bracketed").setup()
 
-			-- tabline插件 tabpage_section = "none"
-			require("mini.tabline").setup({})
+			-- tabline插件
+			require("mini.tabline").setup({ tabpage_section = "none" })
 
 			-- 光标位置文字高亮
 			require("mini.cursorword").setup()
@@ -1158,9 +1320,12 @@ local plugins = {
 							["<C-Down>"] = "cycle_history_next",
 							["<C-Up>"] = "cycle_history_prev",
 							["<C-t>"] = require("telescope.actions.layout").toggle_preview,
+							-- 禁用better-escape的jk键绑定
+							["jk"] = false,
+							["jj"] = false,
 						},
 					},
-					path_display = { shorten = { len = 2, exclude = { 1, 2, -2, -1 } } },
+					path_display = { shorten = { len = 4, exclude = { -2, -1 } } },
 					-- path_display = { truncate = 3 },
 					dynamic_preview_title = true,
 					-- trim the indentation at the beginning of presented line in the result window
@@ -1233,7 +1398,7 @@ local plugins = {
 					winblend = 10,
 					previewer = false,
 				}))
-			end, { desc = "search: [/] buffer" })
+			end, { desc = "search: [/] fuzzy" })
 
 			-- It's also possible to pass additional configuration options.
 			--  See `:help telescope.builtin.live_grep()` for information about particular keys
@@ -1254,7 +1419,7 @@ local plugins = {
 		"folke/flash.nvim", -- 闪电移动跳转
 		event = "VeryLazy",
 		---@type Flash.Config
-		opts = {},
+		opts = {}, -- labels = "asdfghjklqwertyuiopzxcvbnm;,0123456789[]./'\\" },
         -- stylua: ignore
         keys = {
             { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
@@ -1295,12 +1460,12 @@ local plugins = {
 			end,
 		},
 	},
-	-- { -- 处理jk等escape类映射
-	--     "max397574/better-escape.nvim",
-	--     config = function()
-	--         require("better_escape").setup()
-	--     end
-	-- },
+	{ -- 处理jk等escape映射，实现零延迟
+		"max397574/better-escape.nvim",
+		config = function()
+			require("better_escape").setup()
+		end,
+	},
 
 	-- { -- 折叠插件
 	-- 	"kevinhwang91/nvim-ufo",
@@ -1341,7 +1506,26 @@ local plugins = {
 		"m-demare/hlargs.nvim",
 		opts = { use_colorpalette = true, sequential_colorpalette = true }, -- needed
 	},
-
+	{ -- 切换python虚拟环境
+		"linux-cultist/venv-selector.nvim",
+		dependencies = {
+			"neovim/nvim-lspconfig",
+			"mfussenegger/nvim-dap",
+			"mfussenegger/nvim-dap-python", --optional
+			{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
+		},
+		lazy = false,
+		branch = "regexp", -- This is the regexp branch, use this for the new version
+		config = function()
+			require("venv-selector").setup()
+		end,
+		keys = {
+			-- Keymap to open VenvSelector to pick a venv.
+			{ "<leader>vs", "<cmd>VenvSelect<cr>" },
+			-- Keymap to retrieve the venv from a cache (the one previously used for the same project directory).
+			{ "<leader>vc", "<cmd>VenvSelectCached<cr>" },
+		},
+	},
 	{ -- latex文档编写
 		"lervag/vimtex",
 		lazy = false, -- we don't want to lazy load VimTeX
@@ -1359,7 +1543,21 @@ local plugins = {
 			vim.fn["mkdp#util#install"]()
 		end,
 	},
-
+	{ -- json插件
+		"gennaro-tedesco/nvim-jqx",
+		event = { "BufReadPost" },
+		ft = { "json", "yaml" },
+	},
+	-- { -- 类jupyter执行效果，qmd文件（quarto类型）执行代码块
+	-- 	-- 为了在代码块下显示图片，需要image.nvim插件，但windows上不支持
+	-- 	"benlubas/molten-nvim",
+	-- 	version = "^1.0.0", -- use version <2.0.0 to avoid breaking changes
+	-- 	build = ":UpdateRemotePlugins",
+	-- 	init = function()
+	-- 		-- this is an example, not a default. Please see the readme for more configuration options
+	-- 		vim.g.molten_output_win_max_height = 12
+	-- 	end,
+	-- },
 	-- "Shatur/neovim-session-manager", -- 会话管理，不稳定老报错
 	{ -- 自动会话管理，不能自动加载LastSession，无法正常恢复nvim-tree
 		"rmagatti/auto-session",
@@ -1407,6 +1605,60 @@ local plugins = {
 			"rcarriga/nvim-notify",
 		},
 	},
+	{ -- 跟jupyter交互
+		"SUSTech-data/neopyter",
+		event = "VeryLazy",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-treesitter/nvim-treesitter", -- neopyter don't depend on `nvim-treesitter`, but does depend on treesitter parser of python
+			"AbaoFromCUG/websocket.nvim", -- for mode='direct'
+		},
+		---@type neopyter.Option
+		opts = {
+			mode = "direct",
+			remote_address = "127.0.0.1:9001",
+			file_pattern = { "*.ju.*" },
+			textobject = {
+				enable = true,
+				queries = {
+					"linemagic",
+					"cellseparator",
+					"cellcontent",
+					"cell",
+				},
+			},
+			on_attach = function(buf)
+				local function map(mode, lhs, rhs, desc)
+					vim.keymap.set(mode, lhs, rhs, { desc = desc, buffer = buf })
+				end
+				map("n", "<leader>js", "<cmd>Neopyter sync current<cr>", "sync current")
+				-- same, recommend the former
+				map("n", "<C-Enter>", "<cmd>Neopyter execute notebook:run-cell<cr>", "run cell")
+				-- map("n", "<C-Enter>", "<cmd>Neopyter run current<cr>", "run cell")
+				map("n", "<S-Enter>", "<cmd>Neopyter execute runmenu:run<cr>", "run cell and select next")
+				map(
+					"n",
+					"<M-Enter>",
+					"<cmd>Neopyter execute run-cell-and-insert-below<cr>",
+					"run cell and insert below"
+				)
+
+				-- same, recommend the former
+				map("n", "<leader>ja", "<cmd>Neopyter execute notebook:run-all-above<cr>", "run all above cell")
+				-- map("n", "<leader>X", "<cmd>Neopyter run allAbove<cr>", "run all above cell")
+
+				-- same, recommend the former, but the latter is silent
+				map("n", "<leader>jr", "<cmd>Neopyter execute kernelmenu:restart<cr>", "restart kernel")
+				-- map("n", "<leader>nt", "<cmd>Neopyter kernel restart<cr>", "restart kernel")
+				map(
+					"n",
+					"<leader>jR",
+					"<cmd>Neopyter execute notebook:restart-run-all<cr>",
+					"restart kernel and run all"
+				)
+			end,
+		},
+	},
 	{ -- Useful plugin to show you pending keybinds.
 		"folke/which-key.nvim",
 		event = "VimEnter", -- Sets the loading event to 'VimEnter'
@@ -1452,12 +1704,15 @@ local plugins = {
 			spec = {
 				{ "<leader>a", group = "[a]vante" },
 				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
-				{ "<leader>d", group = "[d]iagnose" },
+				{ "<leader>d", group = "[d]ebug" },
 				{ "<leader>s", group = "[s]earch" },
 				{ "<leader>w", group = "[w]orkspace" },
 				{ "<leader>e", group = "[e]xtract", mode = { "n", "v" } },
 				{ "<leader>h", group = "[h]unk", mode = { "n", "v" } },
 				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
+				{ "<leader>v", group = "[v]env" },
+				{ "<leader>j", group = "[j]upyter" },
+				{ "<leader>R", group = "[R]est" },
 			},
 		},
 	},
@@ -1470,6 +1725,24 @@ local plugins = {
 	-- 	},
 	-- },
 	"voldikss/vim-translator", -- 国人写的翻译插件
+	{ -- 自动保存
+		"okuuva/auto-save.nvim",
+		-- version = "^1.0.0", -- see https://devhints.io/semver, alternatively use '*' to use the latest tagged release
+		cmd = "ASToggle", -- optional for lazy loading on command
+		event = { "InsertLeave", "TextChanged" }, -- optional for lazy loading on trigger events
+		opts = {},
+	},
+	{ -- command-preview效果，比如Preview norm
+		"smjonas/live-command.nvim",
+		config = function()
+			require("live-command").setup({
+				commands = {
+					Norm = { cmd = "norm" },
+					G = { cmd = "g" },
+				},
+			})
+		end,
+	},
 
 	-- 颜色主题，部分插件关闭注释斜体在options.lua中设置
 	{
@@ -1500,6 +1773,18 @@ local plugins = {
 	{ "sainnhe/gruvbox-material", lazy = true },
 	{ "EdenEast/nightfox.nvim", lazy = true },
 	{ "sainnhe/everforest", lazy = true },
+	{ "Mofiqul/vscode.nvim", lazy = true },
+	-- { "yashguptaz/calvera-dark.nvim", lazy = true },
+	{ "projekt0n/github-nvim-theme", name = "github-theme" },
+	{ "NLKNguyen/papercolor-theme", lazy = true },
+	{ "nanotech/jellybeans.vim", lazy = true },
+	-- { "tomasr/molokai", lazy = true },
+	{ "loctvl842/monokai-pro.nvim", lazy = true },
+	-- { "nordtheme/vim", lazy = true },
+	{ "rakr/vim-one", lazy = true },
+	{ "ayu-theme/ayu-vim", lazy = true },
+	{ "nyoom-engineering/oxocarbon.nvim", lazy = true },
+	{ "rmehri01/onenord.nvim", lazy = true },
 	{
 		"catppuccin/nvim",
 		name = "catppuccin",

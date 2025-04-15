@@ -12,7 +12,7 @@ M.run_file = function()
 	local filename = vim.api.nvim_buf_get_name(0)
 	-- 当前工作目录
 	local cwd = vim.uv.cwd()
-	-- 替换工作目录前缀为'.'
+	-- 文件路径改为相对路径，即替换cwd部分为'.'
 	filename = "." .. string.gsub(filename, cwd, "")
 
 	local cmd = ""

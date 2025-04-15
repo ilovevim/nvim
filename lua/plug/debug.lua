@@ -32,11 +32,11 @@ return { -- NOTE: Yes, you can install new plugins here!
 		local dapui = require("dapui")
 		return {
 			-- Basic debugging keymaps, feel free to change to your liking!
-			{ "<F5>", dap.continue, desc = "debug: start/continue" },
-			{ "<C-F5>", dap.terminate, desc = "debug: terminate" },
-			{ "<F6>", dap.step_into, desc = "debug: step into" },
-			{ "<C-F6>", dap.step_out, desc = "debug: step out" },
-			{ "<F7>", dap.step_over, desc = "debug: step over" },
+			{ "<leader>ds", dap.continue, desc = "debug: [s]tart" },
+			{ "<leader>dt", dap.terminate, desc = "debug: [t]erminate" },
+			{ "<M-i>", dap.step_into, desc = "debug: step into" },
+			{ "<M-o>", dap.step_out, desc = "debug: step out" },
+			{ "<M-n>", dap.step_over, desc = "debug: step over" },
 			{ "<leader>db", dap.toggle_breakpoint, desc = "debug: [b]reak" },
 			{
 				"<leader>dB",
@@ -46,7 +46,7 @@ return { -- NOTE: Yes, you can install new plugins here!
 				desc = "debug: [B]reak cond",
 			},
 			-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-			{ "<F8>", dapui.toggle, desc = "debug: last session result" },
+			{ "<leader>dT", dapui.toggle, desc = "debug: [T]oggle " },
 			unpack(keys),
 		}
 	end,
@@ -69,6 +69,7 @@ return { -- NOTE: Yes, you can install new plugins here!
 				-- Update this to ensure that you have the debuggers for the langs you want
 				-- "delve",
 				"debugpy",
+				"java-debug-adapter",
 			},
 		})
 
@@ -114,11 +115,10 @@ return { -- NOTE: Yes, you can install new plugins here!
 		-- python调试客户端
 		local dap_python = require("dap-python")
 
-		-- local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
+		local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
 		-- local debugpy_path = mason_path .. "packages/debugpy/venv/Scripts/python"
 		local debugpy_path = "python"
 		dap_python.setup(debugpy_path)
-
 		-- Debug adapter didn't respond. Either the adapter is slow ...
 		-- https://github.com/mfussenegger/nvim-dap/discussions/846
 		-- dap_python.default_port = 38000
@@ -129,16 +129,18 @@ return { -- NOTE: Yes, you can install new plugins here!
 		-- 		request = "launch",
 		-- 		name = "Launch file",
 		-- 		program = "${file}",
-		-- pythonPath = "python",
+		-- 		pythonPath = "python",
 		-- cwd = function()
-		-- 	-- https://github.com/mfussenegger/nvim-dap/discussions/919
+		-- 	-j https://github.com/mfussenegger/nvim-dap/discussions/919
 		-- 	-- util.root_pattern("pyproject.toml")(vim.fn.getcwd())
 		-- 	return vim.fn.getcwd()
 		-- end,
 		--
 		-- https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-		-- 	env = { PYTHONPATH = vim.fn.getcwd() },
-		-- },
+		-- 		env = { PYTHONPATH = vim.fn.getcwd() },
+		-- 	},
 		-- }
+
+		-- Java adapter、configuration无需额外配置，jdtls+java-debug已经绑定自动处理了
 	end,
 }

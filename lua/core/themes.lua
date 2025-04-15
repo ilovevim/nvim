@@ -1,4 +1,5 @@
-local M = {}
+-- 设置随机数种子（Neovim启动时执行一次）
+math.randomseed(os.time())
 
 -- 设置只有neovide才能支持的NerdFont（连字符等），在themes.lua中切换
 -- "VictorMono_NFM:霞鹜文楷等宽:h10", -- 字体太细
@@ -13,6 +14,7 @@ local M = {}
 -- "Sarasa_Nerd:h12", -- 同名：等距更纱黑体_SC:h12
 -- "Hasklig:h12" -- 从SourceCodePro衍生，增加连字符
 -- "Noto_Sans_Mono_CJK_SC,等距更纱黑体_SC:h11",
+-- "Monoid_Nerd_Font_Mono:h11", -- 老牌编程字体（英文大写比小写大太多）
 local fonts = {
 	"SauceCodePro_NFM,等距更纱黑体_SC:h11", -- 英文字体显小，显得中文字体过大
 	"JetBrainsMono_NF,等距更纱黑体_SC:h11",
@@ -25,29 +27,41 @@ local fonts = {
 	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h11",
 	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h11", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
+	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- IBM出品
+	"GeistMono_NFM,霞鹜文楷等宽:h11",
+	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- 专为编码设计
+	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"Maple_Mono_Normal_NF_CN:h11",
 }
 
 -- 自选颜色得到主题
+-- "molokai",
+-- "neosolarized",
 local themes = {
 	"tokyonight",
 	"gruvbox-material",
 	"catppuccin",
 	"kanagawa",
 	"hybrid",
-	"neosolarized",
 	"sonokai",
 	"onedark",
 	"everforest",
 	"nightfox",
 	"rose-pine",
+	"vscode",
+	"github_dark_dimmed",
+	"jellybeans",
+	"PaperColor",
+	"monokai-pro",
+	"one",
+	"ayu",
+	"oxocarbon",
+	"onenord",
 }
 
--- 设置随机数种子，不知为何每次启动math.random()都返回固定值
-math.randomseed(os.time())
-
 -- 字体、颜色索引，lua中数组下标从1开始
-local font_idx = math.random(#fonts)
-local theme_idx = math.random(#themes)
+local font_idx = 0 -- math.random(#fonts)
+local theme_idx = 0 -- math.random(#themes)
 
 -- 按步长step循环迭代idx，以len为限
 -- 若idx为0，表示首次进入，取1-n之间随机数
@@ -59,6 +73,21 @@ local function loop_index(idx, len, step)
 	end
 	return idx
 end
+
+-- 随机打乱表格顺序
+local function shuffle_table(t)
+	for i = #t, 2, -1 do
+		local j = math.random(i)
+		t[i], t[j] = t[j], t[i]
+	end
+	return t
+end
+
+-- 打乱表格顺序，每次启动后随机切换效果
+shuffle_table(fonts)
+shuffle_table(themes)
+
+local M = {}
 
 -- 循环切换字体
 M.switch_font = function(step)

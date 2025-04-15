@@ -13,6 +13,7 @@ opt.number = true
 -- 命令行设置
 -- opt.cmdheight = 0
 
+-- opt.shellslash = true
 opt.autowrite = true -- 自动写入
 
 -- 缩进
@@ -25,13 +26,13 @@ opt.smartindent = true
 opt.jumpoptions = "stack" -- 跳转历史用堆栈模式
 
 -- 不换行
-opt.wrap = false
+-- opt.wrap = true
 
--- 折叠，参考B友“敲代码的脱发水”——代码折叠设置
 -- opt.foldmethod = "indent"
-opt.foldmethod = "expr" -- fold with nvim_treesitter
+opt.foldmethod = "expr"
 opt.foldexpr = "nvim_treesitter#foldexpr()"
 -- opt.foldlevel = 1
+opt.foldlevelstart = 1
 opt.foldenable = false
 
 -- ufo插件
@@ -65,11 +66,11 @@ opt.breakindent = true
 opt.undofile = true
 
 -- 系统剪贴板
--- opt.clipboard:append("unnamedplus")
 -- Schedule the setting after `UiEnter` because it can increase startup-time.
-vim.schedule(function()
-	vim.opt.clipboard = "unnamedplus"
-end)
+-- vim.schedule(function()
+-- 	vim.opt.clipboard = "unnamedplus"
+-- end)
+vim.opt.clipboard:append("unnamedplus")
 
 -- 默认新窗口右和下
 opt.splitright = true
@@ -111,6 +112,31 @@ vim.o.fileencodings = "ucs-bom,utf-8,gb18030,utf-16le,big5,euc-jp,euc-kr,latin1"
 -- vim.opt.spell = true
 -- vim.opt.spelllang = { "en_us" }
 
+-- 禁用诊断虚拟文本
+vim.diagnostic.config({
+	virtual_text = false, -- 禁用虚拟文本
+	signs = true, -- 保留侧边栏的标记
+	update_in_insert = false,
+	underline = false, -- 是否保留代码下方的波浪线
+})
+-- 光标停留在某一行时，通过悬浮窗口显示诊断信息
+-- vim.api.nvim_create_autocmd("CursorHold", {
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		vim.diagnostic.open_float({ header = "", scope = "line" })
+-- 	end,
+-- })
+
+-- 配置python可执行文件，需要安装pynvim，以便可运行python开发的插件
+vim.g.python3_host_prog = "C:/Users/luocm/AppData/Local/Programs/Python/Python39/python.exe"
+vim.g.nayvy_import_config_path = "C:/utility/misc/import_config.nayvy"
+vim.g.nayvy_pyproject_root_markers = {
+	"pyproject.toml",
+	"setup.py",
+	"setup.cfg",
+	"requirements.txt",
+}
+
 --vista插件
 -- vim.g.vista_sidebar_width = 25
 
@@ -133,26 +159,14 @@ vim.g.dbs = {
 	-- },
 }
 
--- 禁用诊断虚拟文本
-vim.diagnostic.config({
-	virtual_text = false, -- 禁用虚拟文本
-	signs = true, -- 保留侧边栏的标记
-	update_in_insert = false,
-	underline = false, -- 是否保留代码下方的波浪线
-})
--- 光标停留在某一行时，通过悬浮窗口显示诊断信息
--- vim.api.nvim_create_autocmd("CursorHold", {
--- 	pattern = "*",
--- 	callback = function()
--- 		vim.diagnostic.open_float({ header = "", scope = "line" })
--- 	end,
--- })
-
 -- vim-translator翻译插件，引擎剔除'google'，无法访问导致插件响应特别慢
 vim.g.translator_default_engines = { "bing", "haici", "youdao" }
 
 -- rest.nvim配置
 ---@type rest.Opts
-vim.g.rest_nvim = {
-	-- ...
-}
+-- vim.g.rest_nvim = {
+-- 	-- ...
+-- }
+
+-- molten-nvim插件
+-- vim.g.python3_host_prog = vim.fn.expand("C:/utility/.venv/neovim/Scripts/python.exe")

@@ -78,3 +78,4 @@ Neovim版本很多，如果图省事，那么类似于LazyVim之类市场上有�
    |:filter /^foo/ oldfiles|过滤oldfiles文件|
    |:lua vim.print()|传入table对象并打印，类似vim.inspect()函数|
    |:e ++enc=gbk|文件乱码时重新按指定字符集加载文件，GB18030是GBK的超集|
+   |:redir @+ \| set rtp \| redir END|输出结果重定向至指定寄存器|
