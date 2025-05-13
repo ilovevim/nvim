@@ -13,13 +13,17 @@ M.run_file = function()
 	-- 当前工作目录
 	local cwd = vim.uv.cwd()
 	-- 文件路径改为相对路径，即替换cwd部分为'.'
-	filename = "." .. string.gsub(filename, cwd, "")
+	filename = string.gsub(filename, cwd, ".")
 
 	local cmd = ""
 	-- 基于文件类型，指定执行程序
 	local filetype = vim.bo.filetype
 	if filetype == "python" then
 		cmd = "python " .. filename
+		-- 以test开头或结尾的文件，启用pytest
+		if string.match(filename, "[/\\]*test_.+py$") ~= nil or string.match(filename, "[/\\]*.+_test.py$") ~= nil then
+			cmd = "python -m pytest " .. filename
+		end
 	elseif filetype == "java" then
 		cmd = "java " .. filename
 	end
@@ -48,7 +52,7 @@ M.run_file = function()
 		})
 		term:open()
 	else
-		print("run: unsupported filetype!")
+		print("run: unsupported filetype " .. filetype .. "!")
 	end
 end
 

@@ -160,7 +160,13 @@ local plugins = {
 		end,
 	},
 	-- "p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
-	"HiPhish/rainbow-delimiters.nvim",
+	{
+		"HiPhish/rainbow-delimiters.nvim",
+		submodules = false, -- 解决安装报错test/bin无法clone
+		config = function()
+			require("rainbow-delimiters.setup").setup({})
+		end,
+	},
 	-- {
 	-- 	"andymass/vim-matchup",
 	-- 	init = function()
@@ -247,12 +253,13 @@ local plugins = {
 					--  To jump back, press <C-t>.
 					map("gd", require("telescope.builtin").lsp_definitions, "goto [d]efinition")
 
+					-- grr/grn/gra/gri/gO等已在runtime\lua\vim\_defaults.lua中被默认定义
 					-- Find references for the word under your cursor.
-					map("gr", require("telescope.builtin").lsp_references, "goto [r]eferences")
+					map("grr", require("telescope.builtin").lsp_references, "goto [r]eferences")
 
 					-- Jump to the implementation of the word under your cursor.
 					--  Useful when your language has ways of declaring types without an actual implementation.
-					map("gI", require("telescope.builtin").lsp_implementations, "goto [I]mplementation")
+					map("gri", require("telescope.builtin").lsp_implementations, "goto [i]mplementation")
 
 					-- Jump to the type of the word under your cursor.
 					--  Useful when you're not sure what type a variable is and you want to see
@@ -269,21 +276,21 @@ local plugins = {
 
 					-- Rename the variable under your cursor.
 					--  Most Language Servers support renaming across files, etc.
-					map("<leader>cr", vim.lsp.buf.rename, "code: [r]ename")
+					-- map("<leader>cr", vim.lsp.buf.rename, "code: [r]ename")
 
 					-- Execute a code action, usually your cursor needs to be on top of an error
 					-- or a suggestion from your LSP for this to activate.
-					map("<leader>ca", vim.lsp.buf.code_action, "code: [a]ction", { "n", "x" })
+					-- map("<leader>ca", vim.lsp.buf.code_action, "code: [a]ction", { "n", "x" })
 
 					-- WARN: This is not Goto Definition, this is Goto Declaration.
 					--  For example, in C this would take you to the header.
 					map("gD", vim.lsp.buf.declaration, "goto [D]eclaration")
 
 					-- 光标所在词浮窗提示
-					map("K", vim.lsp.buf.hover, "hover doc")
+					map("K", vim.lsp.buf.hover, "hover document")
 
-					-- 光标所在词浮窗提示
-					map("<c-n>", vim.lsp.buf.signature_help, "signature help")
+					-- 光标所在词浮窗提示(imap <c-s>已在_defaults.lua中定义)
+					map("<c-s>", vim.lsp.buf.signature_help, "signature help")
 
 					-- 工作目录维护
 					map("<leader>wa", vim.lsp.buf.add_workspace_folder, "workspace: [a]dd")
@@ -326,8 +333,6 @@ local plugins = {
 
 					-- The following code creates a keymap to toggle inlay hints in your
 					-- code, if the language server you are using supports them
-					--
-					-- This may be unwanted, since they displace some of your code
 					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
 						map("<leader>ct", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
@@ -378,42 +383,43 @@ local plugins = {
 				-- https://microsoft.github.io/pyright/#/settings
 				pyright = {
 					settings = {
-						pyright = {
-							-- disableLanguageServices = false, -- 保持基础 LSP 功能
-							disableOrganizeImports = true, -- 关闭 Pyright 自带的 import 整理
-						},
+						-- pyright = {
+						-- 			-- disableLanguageServices = false, -- 保持基础 LSP 功能
+						-- 			disableOrganizeImports = true, -- 关闭 Pyright 自带的 import 整理
+						-- 		},
 						python = {
 							analysis = {
-								-- useLibraryCodeForTypes = true,
-								-- diagnosticSeverityOverrides = {
-								-- 	reportUnusedImport = "none", -- 禁用未使用导入的提示
-								-- },
-								-- autoImportCompletions = true,
-								-- typeCheckingMode = "strict",
-								-- diagnosticMode = "workspace", -- 降低实时诊断频率
-								linting = { enabled = false }, -- 彻底关闭 Pyright 的 lint 功能
-
-								-- Ignore all files for analysis to exclusively use Ruff for linting
-								-- ignore = { "*" },
+								extraPaths = { "." },
+								-- 				-- useLibraryCodeForTypes = true,
+								-- 				-- diagnosticSeverityOverrides = {
+								-- 				-- 	reportUnusedImport = "none", -- 禁用未使用导入的提示
+								-- 				-- },
+								-- 				-- autoImportCompletions = true,
+								-- 				-- typeCheckingMode = "strict",
+								-- 				-- diagnosticMode = "workspace", -- 降低实时诊断频率
+								-- 				linting = { enabled = false }, -- 彻底关闭 Pyright 的 lint 功能
+								--
+								-- 				-- Ignore all files for analysis to exclusively use Ruff for linting
+								-- 				-- ignore = { "*" },
 							},
 						},
 					},
 				},
 
 				-- https://docs.astral.sh/ruff/editors/settings/
-				ruff = {
-					settings = {
-						init_options = {
-							settings = {
-								args = { "--fix-only", "--select=ALL" }, -- 全量规则 + 自动修复
-								organizeImports = true, -- 接管 imports 整理
-								lint = { enable = true },
-							},
-						},
-						-- 增强 Ruff 的代码操作优先级
-						-- capabilities = require("cmp_nvim_lsp").default_capabilities().textDocument.codeAction,
-					},
-				},
+				-- ruff = {
+				-- 	settings = {
+				-- 		init_options = {
+				-- 			settings = {
+				-- 				args = { "--fix-only", "--select=ALL" }, -- 全量规则 + 自动修复
+				-- 				organizeImports = true, -- 接管 imports 整理
+				-- 				lint = { enable = true },
+				-- 			},
+				-- 		},
+				-- 		-- 增强 Ruff 的代码操作优先级
+				-- 		-- capabilities = require("cmp_nvim_lsp").default_capabilities().textDocument.codeAction,
+				-- 	},
+				-- },
 
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -489,6 +495,7 @@ local plugins = {
 			require("mason-lspconfig").setup({
 				handlers = {
 					function(server_name)
+						vim.notify("checking server", server_name, server)
 						local server = servers[server_name] or {}
 						-- This handles overriding only values explicitly passed
 						-- by the server configuration above. Useful when disabling
@@ -1000,45 +1007,45 @@ local plugins = {
 	"kosayoda/nvim-lightbulb", -- code action提示灯泡
 	{ -- Autoformat
 		"stevearc/conform.nvim",
-		-- event = { "BufWritePre" },
-		event = "VeryLazy",
+		event = { "BufWritePre" },
+		-- event = "VeryLazy",
 		cmd = { "ConformInfo" },
 		keys = {
 			{
 				"<leader>cf",
 				function()
-					require("conform").format({ async = true, lsp_format = "fallback" })
+					require("conform").format({ async = true })
 				end,
 				mode = "",
 				desc = "code: [f]ormat",
 			},
 		},
 		opts = {
-			notify_on_error = true,
-			format_on_save = function(bufnr)
-				-- Disable "format_on_save lsp_fallback" for languages that don't
-				-- have a well standardized coding style. You can add additional
-				-- languages here or re-enable it for the disabled ones.
-				local disable_filetypes = { c = true, cpp = true, python = true }
-				local lsp_format_opt = "fallback"
-				if disable_filetypes[vim.bo[bufnr].filetype] then
-					lsp_format_opt = "never"
-				end
-				return {
-					timeout_ms = 500,
-					lsp_format = lsp_format_opt,
-				}
-			end,
 			formatters_by_ft = {
 				lua = { "stylua" },
-				python = { "ruff", format_on_save = false },
-				-- Conform can also run multiple formatters sequentially
+				python = {
+					"ruff_fix", -- fix lint errors. (ruff with argument --fix)
+					"ruff_format", -- run the formatter. (ruff with argument format)",
+				},
 				-- python = { "isort", "black" },
-				--
-				-- You can use 'stop_after_first' to run the first available formatter from the list
-				-- javascript = { "prettierd", "prettier", stop_after_first = true },
+				javascript = { "prettierd", "prettier", stop_after_first = true },
 				markdown = { "prettierd" },
 			},
+			default_format_opts = {
+				lsp_format = "fallback",
+			},
+			-- Set up format-on-save
+			format_on_save = { timeout_ms = 500 },
+			-- Customize formatters
+			formatters = {
+				shfmt = {
+					prepend_args = { "-i", "2" },
+				},
+			},
+			init = function()
+				-- If you want the formatexpr, here is the place to set it
+				vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
+			end,
 		},
 	},
 	{ -- 代码导航面包屑
@@ -1175,8 +1182,8 @@ local plugins = {
 			-- 文件夹浏览浮窗
 			require("mini.files").setup()
 
-			-- 括号中内容拆分合并（快捷键gS）
-			require("mini.splitjoin").setup()
+			-- 括号中内容拆分合并（默认快捷键gS，改为gs更方便），改用ts-node-action
+			-- require("mini.splitjoin").setup({ mappings = { toggle = "gs" } })
 
 			-- ]x/[x快速跳转缓冲区、代码位置等，会占用]I键，不方便
 			-- require("mini.bracketed").setup()
@@ -1236,6 +1243,10 @@ local plugins = {
 		event = "VimEnter",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		opts = { signs = false },
+	},
+	{ -- 生成类、函数的docstring
+		"danymat/neogen",
+		config = true,
 	},
 	{ -- gitsigns：Adds git related signs to the gutter, as well as utilities for managing changes
 		"lewis6991/gitsigns.nvim", -- 左侧git提示
@@ -1319,7 +1330,9 @@ local plugins = {
 							["<c-enter>"] = "to_fuzzy_refine",
 							["<C-Down>"] = "cycle_history_next",
 							["<C-Up>"] = "cycle_history_prev",
-							["<C-t>"] = require("telescope.actions.layout").toggle_preview,
+							-- ["<C-t>"] = require("telescope.actions.layout").toggle_preview,
+							-- 切换布局（横竖屏），可兼顾toggle_preview的效果
+							["<C-t>"] = require("telescope.actions.layout").cycle_layout_next,
 							-- 禁用better-escape的jk键绑定
 							["jk"] = false,
 							["jj"] = false,
@@ -1339,7 +1352,7 @@ local plugins = {
 						"--smart-case",
 						"--trim", -- add this value
 					},
-					-- layout_strategy = "horizontal",
+					layout_strategy = "vertical",
 					layout_config = {
 						horizontal = {
 							-- https://yeripratama.com/blog/customizing-nvim-telescope/
@@ -1349,6 +1362,12 @@ local plugins = {
 							height = { padding = 0 },
 							prompt_position = "bottom",
 							preview_width = 0.5,
+						},
+						vertical = {
+							width = { padding = 0 },
+							height = { padding = 0 },
+							prompt_position = "bottom",
+							preview_height = 0.5,
 						},
 					},
 					preview = {
@@ -1460,12 +1479,12 @@ local plugins = {
 			end,
 		},
 	},
-	{ -- 处理jk等escape映射，实现零延迟
-		"max397574/better-escape.nvim",
-		config = function()
-			require("better_escape").setup()
-		end,
-	},
+	-- { -- 处理jk等escape映射，实现零延迟
+	-- 	"max397574/better-escape.nvim",
+	-- 	config = function()
+	-- 		require("better_escape").setup()
+	-- 	end,
+	-- },
 
 	-- { -- 折叠插件
 	-- 	"kevinhwang91/nvim-ufo",
@@ -1488,7 +1507,26 @@ local plugins = {
 	-- 		require("fold-preview").setup({ auto = 400 })
 	-- 	end,
 	-- },
-
+	{ -- FIX 测试框架，暂无法正常使用
+		"nvim-neotest/neotest",
+		dependencies = {
+			"nvim-neotest/nvim-nio",
+			"nvim-lua/plenary.nvim",
+			"antoinemadec/FixCursorHold.nvim",
+			"nvim-treesitter/nvim-treesitter",
+			"nvim-neotest/neotest-python",
+		},
+		config = function()
+			require("neotest").setup({
+				adapters = {
+					require("neotest-python")({
+						dap = { justMyCode = false },
+						runner = "pytest",
+					}),
+				},
+			})
+		end,
+	},
 	"tpope/vim-repeat", -- 增强.重复操作
 	"ethanholz/nvim-lastplace", -- 回到文件上次编辑位置
 	"nvim-pack/nvim-spectre", -- 查找替换插件
@@ -1594,7 +1632,9 @@ local plugins = {
 		"folke/noice.nvim",
 		event = "VeryLazy",
 		opts = {
-			-- add any options here
+			presets = {
+				inc_rename = true,
+			},
 		},
 		dependencies = {
 			-- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
@@ -1725,7 +1765,7 @@ local plugins = {
 	-- 	},
 	-- },
 	"voldikss/vim-translator", -- 国人写的翻译插件
-	{ -- 自动保存
+	{ -- 文件自动保存
 		"okuuva/auto-save.nvim",
 		-- version = "^1.0.0", -- see https://devhints.io/semver, alternatively use '*' to use the latest tagged release
 		cmd = "ASToggle", -- optional for lazy loading on command
@@ -1743,7 +1783,92 @@ local plugins = {
 			})
 		end,
 	},
-
+	{ -- 变量改名preview效果
+		"smjonas/inc-rename.nvim",
+		config = function()
+			require("inc_rename").setup()
+		end,
+	},
+	-- { -- 切换buffer小浮窗
+	-- 	"ghillb/cybu.nvim",
+	-- 	dependencies = { "nvim-tree/nvim-web-devicons", "nvim-lua/plenary.nvim" },
+	-- 	config = function()
+	-- 		require("cybu").setup()
+	-- 	end,
+	-- },
+	{ -- 自动清理未使用的buffer，确保数量在限定范围内
+		"ChuufMaster/buffer-vacuum",
+		opts = { max_buffers = 7 },
+	},
+	-- { -- 切分代码行/汇总代码块：未比mini.splitjoin更好
+	-- 	"Wansmer/treesj",
+	-- 	keys = { "<space>m", "<space>j", "<space>s" },
+	-- 	dependencies = { "nvim-treesitter/nvim-treesitter" }, -- if you install parsers with `nvim-treesitter`
+	-- 	config = function()
+	-- 		require("treesj").setup({--[[ your config ]]
+	-- 		})
+	-- 	end,
+	-- },
+	{ -- 自动添加结尾标签
+		"windwp/nvim-ts-autotag",
+		opts = {},
+	},
+	-- { -- 浮窗解释regex正则表达式
+	-- 	"bennypowers/nvim-regexplainer",
+	-- 	dependencies = {
+	-- 		"nvim-treesitter/nvim-treesitter",
+	-- 		"MunifTanjim/nui.nvim",
+	-- 	},
+	-- 	config = function()
+	-- 		require("regexplainer").setup()
+	-- 	end,
+	-- },
+	{ -- 正则表达式解释
+		"tomiis4/Hypersonic.nvim",
+		event = "CmdlineEnter",
+		cmd = "Hypersonic",
+		config = function()
+			require("hypersonic").setup({})
+		end,
+	},
+	{ -- 提取url清单
+		"axieax/urlview.nvim",
+		opts = {},
+	},
+	-- { -- 平滑滚动（使用neovim原生滚动效果更好）
+	-- 	"karb94/neoscroll.nvim",
+	-- 	opts = {},
+	-- },
+	{ -- 函数上下文提示
+		"andersevenrud/nvim_context_vt",
+		opts = {
+			enabled = false,
+		},
+	},
+	{ -- 切换日期、布尔值等
+		"nat-418/boole.nvim",
+		opts = {
+			mappings = {
+				increment = "<C-a>",
+				decrement = "<C-x>",
+			},
+			-- User defined loops
+			additions = {
+				{ "Foo", "Bar" },
+				{ "tic", "tac", "toe" },
+			},
+			allow_caps_additions = {
+				{ "enable", "disable" },
+			},
+		},
+	},
+	{ -- ts节点动作：折行（可取代splitjoin）、切换值
+		"ckolkey/ts-node-action",
+		opts = {},
+		keys = {
+			{ "gs", "<cmd>NodeAction<cr>", mode = "n", desc = "ts-node-action" },
+		},
+	},
 	-- 颜色主题，部分插件关闭注释斜体在options.lua中设置
 	{
 		"folke/tokyonight.nvim",
@@ -1785,6 +1910,8 @@ local plugins = {
 	{ "ayu-theme/ayu-vim", lazy = true },
 	{ "nyoom-engineering/oxocarbon.nvim", lazy = true },
 	{ "rmehri01/onenord.nvim", lazy = true },
+	-- { "calind/selenized.nvim", lazy = true },
+	{ "xero/miasma.nvim", lazy = true },
 	{
 		"catppuccin/nvim",
 		name = "catppuccin",

@@ -101,8 +101,8 @@ opt.updatetime = 200
 -- opt.list = true
 -- opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
--- 会话保存autosession插件
-vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+-- 会话保存autosession插件（blank,folds,help,globals,options,skiprtp.resize,sesdir）
+vim.o.sessionoptions = "buffers,curdir,tabpages,winsize,winpos,terminal,localoptions"
 
 -- 字符集设置，可尝试重新加载文件:e ++enc=gbk，GB18030是GBK的超集
 vim.o.fileencodings = "ucs-bom,utf-8,gb18030,utf-16le,big5,euc-jp,euc-kr,latin1"

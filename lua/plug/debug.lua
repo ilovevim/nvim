@@ -33,7 +33,7 @@ return { -- NOTE: Yes, you can install new plugins here!
 		return {
 			-- Basic debugging keymaps, feel free to change to your liking!
 			{ "<leader>ds", dap.continue, desc = "debug: [s]tart" },
-			{ "<leader>dt", dap.terminate, desc = "debug: [t]erminate" },
+			{ "<leader>dT", dap.terminate, desc = "debug: [T]erminate" },
 			{ "<M-i>", dap.step_into, desc = "debug: step into" },
 			{ "<M-o>", dap.step_out, desc = "debug: step out" },
 			{ "<M-n>", dap.step_over, desc = "debug: step over" },
@@ -46,7 +46,7 @@ return { -- NOTE: Yes, you can install new plugins here!
 				desc = "debug: [B]reak cond",
 			},
 			-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-			{ "<leader>dT", dapui.toggle, desc = "debug: [T]oggle " },
+			{ "<leader>dt", dapui.toggle, desc = "debug: [t]oggle " },
 			unpack(keys),
 		}
 	end,

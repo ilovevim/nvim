@@ -19,19 +19,19 @@ local fonts = {
 	"SauceCodePro_NFM,等距更纱黑体_SC:h11", -- 英文字体显小，显得中文字体过大
 	"JetBrainsMono_NF,等距更纱黑体_SC:h11",
 	"FiraCode_Nerd_Font,等距更纱黑体_SC:h11",
-	"Iosevka_NFM,霞鹜文楷等宽:h12", -- 中文版即为Sarasa（等距更纱黑体）
 	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h11",
 	"CasCadia_Code_NF,霞鹜文楷等宽:h11",
 	"CommitMono_Nerd_Font,等距更纱黑体_SC:h11", -- 以Fira Code和JetBrains Mono为灵感制作
-	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
 	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h11",
-	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h11", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
 	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- IBM出品
 	"GeistMono_NFM,霞鹜文楷等宽:h11",
 	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- 专为编码设计
-	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"Maple_Mono_Normal_NF_CN:h11",
+	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
+	"Iosevka_NFM,霞鹜文楷等宽:h12", -- 中文版即为Sarasa（等距更纱黑体）
+	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 }
 
 -- 自选颜色得到主题
@@ -57,6 +57,7 @@ local themes = {
 	"ayu",
 	"oxocarbon",
 	"onenord",
+	"miasma",
 }
 
 -- 字体、颜色索引，lua中数组下标从1开始

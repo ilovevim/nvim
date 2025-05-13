@@ -63,3 +63,26 @@ vim.api.nvim_create_autocmd("FileType", {
 		end, { buffer = ev.buf, desc = "toggle public/private function" })
 	end,
 })
+
+-- 创建自动命令组（防止重复注册）
+local colorscheme_group = vim.api.nvim_create_augroup("colorscheme_group", { clear = true })
+
+-- 修复下切换colorscheme后cybu.nvim插件高亮颜色丢失的问题
+vim.api.nvim_create_autocmd("ColorScheme", {
+	pattern = "*",
+	group = colorscheme_group,
+	callback = function(ev)
+		-- set default highlight groups
+		vim.api.nvim_set_hl(0, "CybuFocus", {
+			fg = vim.api.nvim_get_hl_by_name("Normal", true).foreground,
+			bg = vim.api.nvim_get_hl_by_name("Visual", true).background,
+		})
+		vim.api.nvim_set_hl(0, "CybuAdjacent", {
+			fg = vim.api.nvim_get_hl_by_name("Comment", true).foreground,
+			bg = vim.api.nvim_get_hl_by_name("Comment", true).background,
+		})
+		vim.api.nvim_set_hl(0, "CybuBackground", { link = "Normal" })
+		vim.api.nvim_set_hl(0, "CybuBorder", { link = "FloatBorder" })
+		vim.api.nvim_set_hl(0, "CybuInfobar", { link = "StatusLine" })
+	end,
+})

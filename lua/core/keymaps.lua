@@ -39,6 +39,7 @@ keymap.set("n", "<c-c>", "<C-w>c") -- 关闭窗口
 -- 跳转到当前文件所属目录
 -- keymap.set("n", "<A-j>", ':<c-r>=winnr()<cr>windo cd <c-r>=expand("%:p:h")<cr>')
 keymap.set("n", "<A-j>", ':cd <c-r>=expand("%:p:h")<cr>')
+keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
 
 -- 保存文件
 keymap.set("n", "\\w", "<cmd>update<cr>", { desc = "buffer update" })
@@ -115,3 +116,14 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- dapui插件（表达式求值）
 vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
+
+-- inc-rename插件预览式更名，替换vim.lsp.buf.rename
+vim.keymap.set("n", "<leader>cr", function()
+	return ":IncRename " .. vim.fn.expand("<cword>")
+end, { expr = true, desc = "code: [r]ename" })
+
+-- Cybu.nvim插件切换buffer
+-- vim.keymap.set("n", "<A-h>", "<Plug>(CybuPrev)")
+-- vim.keymap.set("n", "<A-l>", "<Plug>(CybuNext)")
+-- vim.keymap.set({ "n", "v" }, "<c-s-tab>", "<plug>(CybuLastusedPrev)")
+-- vim.keymap.set({ "n", "v" }, "<c-tab>", "<plug>(CybuLastusedNext)")
