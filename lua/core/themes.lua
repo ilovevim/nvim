@@ -35,8 +35,7 @@ local fonts = {
 }
 
 -- 自选颜色得到主题
--- "molokai",
--- "neosolarized",
+-- "molokai", "neosolarized", "ayu",
 local themes = {
 	"tokyonight",
 	"gruvbox-material",
@@ -54,10 +53,10 @@ local themes = {
 	"PaperColor",
 	"monokai-pro",
 	"one",
-	"ayu",
 	"oxocarbon",
 	"onenord",
 	"miasma",
+	"OceanicNext",
 }
 
 -- 字体、颜色索引，lua中数组下标从1开始

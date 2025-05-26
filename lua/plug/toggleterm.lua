@@ -2,6 +2,9 @@
 -- vim.o.termguicolors = true
 -- vim.cmd[[ autocmd TermOpen term://* lua require('toggleterm').toggle() ]]
 
+--考虑根据不同文件类型进行分类设置，暂时只适用于python（支持pytest）
+vim.g.run_cmd_args = "-m pytest"
+
 local M = {}
 
 -- 运行Python、java文件
@@ -22,7 +25,7 @@ M.run_file = function()
 		cmd = "python " .. filename
 		-- 以test开头或结尾的文件，启用pytest
 		if string.match(filename, "[/\\]*test_.+py$") ~= nil or string.match(filename, "[/\\]*.+_test.py$") ~= nil then
-			cmd = "python -m pytest " .. filename
+			cmd = "python " .. vim.g.run_cmd_args .. " " .. filename
 		end
 	elseif filetype == "java" then
 		cmd = "java " .. filename

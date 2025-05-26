@@ -1,39 +1,37 @@
-local opt = vim.opt
-
 -- 字体(Nerd字体，支持连字符)
 -- 在neovide个性化选项中设置（toggleime.lua）
 -- vim.o.guifontwide = "霞鹜文楷等宽:h12" -- neovide下不起作用，直接写到guifont中
 -- https://github.com/neovide/neovide/issues/1729
--- opt.ambiwidth = "double"
+-- vim.o.ambiwidth = "double"
 
 -- 行号
--- opt.relativenumber = true
-opt.number = true
+-- vim.o.relativenumber = true
+vim.o.number = true
 
 -- 命令行设置
--- opt.cmdheight = 0
+-- vim.o.cmdheight = 0
 
--- opt.shellslash = true
-opt.autowrite = true -- 自动写入
+-- vim.o.shellslash = true
+vim.o.autowrite = true -- 自动写入
 
 -- 缩进
-opt.tabstop = 4
-opt.shiftwidth = 4
-opt.expandtab = true
-opt.autoindent = true
-opt.smartindent = true
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.expandtab = true
+vim.o.autoindent = true
+vim.o.smartindent = true
 
-opt.jumpoptions = "stack" -- 跳转历史用堆栈模式
+vim.o.jumpoptions = "stack" -- 跳转历史用堆栈模式
 
 -- 不换行
--- opt.wrap = true
+-- vim.o.wrap = true
 
--- opt.foldmethod = "indent"
-opt.foldmethod = "expr"
-opt.foldexpr = "nvim_treesitter#foldexpr()"
--- opt.foldlevel = 1
-opt.foldlevelstart = 1
-opt.foldenable = false
+-- vim.o.foldmethod = "indent"
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "nvim_treesitter#foldexpr()"
+-- vim.o.foldlevel = 1
+vim.o.foldlevelstart = 1
+vim.o.foldenable = false
 
 -- ufo插件
 -- vim.o.foldcolumn = "1" -- '0' is not bad
@@ -45,61 +43,65 @@ opt.foldenable = false
 -- vim.keymap.set("n", "zM", require("ufo").closeAllFolds)
 
 -- 行内全量替换
-opt.gdefault = true
+vim.o.gdefault = true
 
 -- 光标行
-opt.cursorline = true
+vim.o.cursorline = true
 
 -- 启用鼠标
-opt.mouse:append("a")
+-- vim.o.mouse:append("a")
+vim.o.mouse = "a"
 
 -- 状态栏已经显示模式，无需再额外显示
-opt.showmode = false
+vim.o.showmode = false
 
 -- 隐藏tabline，否则可用mini.tabline来管理
--- opt.showtabline = 0
+-- vim.o.showtabline = 0
 
 -- Enable break indent
-opt.breakindent = true
+vim.o.breakindent = true
 
 -- Save undo history
-opt.undofile = true
+vim.o.undofile = true
 
 -- 系统剪贴板
 -- Schedule the setting after `UiEnter` because it can increase startup-time.
--- vim.schedule(function()
--- 	vim.opt.clipboard = "unnamedplus"
--- end)
-vim.opt.clipboard:append("unnamedplus")
+vim.schedule(function()
+	vim.o.clipboard = "unnamedplus"
+end)
+-- vim.o.clipboard:append("unnamedplus")
 
 -- 默认新窗口右和下
-opt.splitright = true
-opt.splitbelow = true
+vim.o.splitright = true
+vim.o.splitbelow = true
 
 -- 搜索
-opt.ignorecase = true
-opt.smartcase = true
+vim.o.ignorecase = true
+vim.o.smartcase = true
 
 -- 外观
-opt.termguicolors = true
-opt.signcolumn = "yes"
+vim.o.termguicolors = true
+vim.o.signcolumn = "yes"
 -- vim.cmd[[colorscheme tokyonight-moon]]
-opt.colorcolumn = "80,120"
+vim.o.colorcolumn = "80,120"
 
 -- 滚动时上下预留行数，极大值可确保n/N查找时定位到屏幕中间
--- opt.scrolloff = 999
+-- vim.o.scrolloff = 999
 
 -- Decrease update time
-opt.updatetime = 200
+vim.o.updatetime = 200
+
+-- subsitutions live preview
+vim.o.inccommand = "split"
 
 -- 按键超时间隔（毫秒）
--- opt.timeoutlen = 600
+-- vim.o.timeoutlen = 600
 
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
--- opt.list = true
--- opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+-- vim.o.confirm = true
+
+-- listchars仍然需要用opt访问
+-- vim.o.list = true
+-- vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
 -- 会话保存autosession插件（blank,folds,help,globals,options,skiprtp.resize,sesdir）
 vim.o.sessionoptions = "buffers,curdir,tabpages,winsize,winpos,terminal,localoptions"
@@ -113,12 +115,13 @@ vim.o.fileencodings = "ucs-bom,utf-8,gb18030,utf-16le,big5,euc-jp,euc-kr,latin1"
 -- vim.opt.spelllang = { "en_us" }
 
 -- 禁用诊断虚拟文本
-vim.diagnostic.config({
-	virtual_text = false, -- 禁用虚拟文本
-	signs = true, -- 保留侧边栏的标记
-	update_in_insert = false,
-	underline = false, -- 是否保留代码下方的波浪线
-})
+-- vim.diagnostic.config({
+-- 	virtual_text = false, -- 禁用虚拟文本
+-- 	signs = true, -- 保留侧边栏的标记
+-- 	update_in_insert = false,
+-- 	underline = false, -- 是否保留代码下方的波浪线
+-- })
+
 -- 光标停留在某一行时，通过悬浮窗口显示诊断信息
 -- vim.api.nvim_create_autocmd("CursorHold", {
 -- 	pattern = "*",

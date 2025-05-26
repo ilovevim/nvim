@@ -20,36 +20,73 @@ return { -- NOTE: Yes, you can install new plugins here!
 		"nvim-neotest/nvim-nio",
 
 		-- Installs the debug adapters for you
-		"williamboman/mason.nvim",
+		"mason-org/mason.nvim",
 		"jay-babu/mason-nvim-dap.nvim",
 
 		-- Add your own debuggers here
 		-- "leoluz/nvim-dap-go",
 		"mfussenegger/nvim-dap-python",
 	},
-	keys = function(_, keys)
-		local dap = require("dap")
-		local dapui = require("dapui")
-		return {
-			-- Basic debugging keymaps, feel free to change to your liking!
-			{ "<leader>ds", dap.continue, desc = "debug: [s]tart" },
-			{ "<leader>dT", dap.terminate, desc = "debug: [T]erminate" },
-			{ "<M-i>", dap.step_into, desc = "debug: step into" },
-			{ "<M-o>", dap.step_out, desc = "debug: step out" },
-			{ "<M-n>", dap.step_over, desc = "debug: step over" },
-			{ "<leader>db", dap.toggle_breakpoint, desc = "debug: [b]reak" },
-			{
-				"<leader>dB",
-				function()
-					dap.set_breakpoint(vim.fn.input("breakpoint condition: "))
-				end,
-				desc = "debug: [B]reak cond",
-			},
-			-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-			{ "<leader>dt", dapui.toggle, desc = "debug: [t]oggle " },
-			unpack(keys),
-		}
-	end,
+	keys = {
+		-- Basic debugging keymaps, feel free to change to your liking!
+		{
+			"<leader>ds",
+			function()
+				require("dap").continue()
+			end,
+			desc = "debug: [s]tart",
+		},
+		{
+			"<leader>dT",
+			function()
+				require("dap").terminate()
+			end,
+			desc = "debug: [T]erminate",
+		},
+		{
+			"<M-i>",
+			function()
+				require("dap").step_into()
+			end,
+			desc = "debug: step into",
+		},
+		{
+			"<M-o>",
+			function()
+				require("dap").step_out()
+			end,
+			desc = "debug: step out",
+		},
+		{
+			"<M-n>",
+			function()
+				require("dap").step_over()
+			end,
+			desc = "debug: step over",
+		},
+		{
+			"<leader>db",
+			function()
+				require("dap").toggle_breakpoint()
+			end,
+			desc = "debug: [b]reak",
+		},
+		{
+			"<leader>dB",
+			function()
+				require("dap").set_breakpoint(vim.fn.input("breakpoint condition: "))
+			end,
+			desc = "debug: [B]reak cond",
+		},
+		-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
+		{
+			"<leader>dt",
+			function()
+				require("dapui").toggle()
+			end,
+			desc = "debug: [t]oggle ",
+		},
+	},
 	config = function()
 		local dap = require("dap")
 		local dapui = require("dapui")

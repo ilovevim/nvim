@@ -1,5 +1,5 @@
 local keymap = vim.keymap
-local opt = { noremap = true, silent = true }
+local opts = { noremap = true, silent = true }
 
 -- 取消高亮
 keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
@@ -42,32 +42,18 @@ keymap.set("n", "<A-j>", ':cd <c-r>=expand("%:p:h")<cr>')
 keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
 
 -- 保存文件
-keymap.set("n", "\\w", "<cmd>update<cr>", { desc = "buffer update" })
-keymap.set("i", "\\w", "<esc><cmd>update<cr>", { desc = "buffer update" })
+keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer [s]ave" })
+keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer [s]ave" })
 
 -- ---------- 插件 ---------- ---
 -- nvim-tree
-keymap.set("n", "<F1>", "<cmd>NvimTreeFindFileToggle!<CR>")
-keymap.set("n", "<S-F1>", "<cmd>NvimTreeFindFile!<CR>")
+-- keymap.set("n", "<F1>", "<cmd>NvimTreeFindFileToggle!<CR>")
+-- keymap.set("n", "<S-F1>", "<cmd>NvimTreeFindFile!<CR>")
 -- keymap.set("n", "<F1><F1>", ":NvimTreeClose<CR>")
 
 -- 代码大纲（函数列表）
 -- keymap.set("n", "<F2>", ":Vista<CR>")
 -- keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>")
-
--- mini.nvim
-keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "workspace: [m]ini.file" })
--- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
--- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
-
--- buffer管理
-keymap.set("n", "<A-l>", "<cmd>bnext<CR>")
-keymap.set("n", "<A-h>", "<cmd>bprevious<CR>")
-keymap.set("n", "<A-d>", "<cmd>bdelete<CR>")
-
--- bufferline插件
--- keymap.set("n", "<A-h>", ":BufferLineCyclePrev<CR>")
--- keymap.set("n", "<A-l>", ":BufferLineCycleNext<CR>")
 
 -- toggleterm插件快捷键
 keymap.set("n", "<F3>", "<cmd>silent up | lua require('plug.toggleterm').run_file()<cr>", { desc = "run file" })
@@ -110,7 +96,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight when yanking (copying) text",
 	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
 	callback = function()
-		vim.highlight.on_yank()
+		vim.hl.on_yank()
 	end,
 })
 
@@ -127,3 +113,76 @@ end, { expr = true, desc = "code: [r]ename" })
 -- vim.keymap.set("n", "<A-l>", "<Plug>(CybuNext)")
 -- vim.keymap.set({ "n", "v" }, "<c-s-tab>", "<plug>(CybuLastusedPrev)")
 -- vim.keymap.set({ "n", "v" }, "<c-tab>", "<plug>(CybuLastusedNext)")
+
+-- mini.nvim
+keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "workspace: [m]ini.file" })
+-- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
+-- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
+
+-- buffer管理
+-- keymap.set("n", "<A-l>", "<cmd>bnext<CR>")
+-- keymap.set("n", "<A-h>", "<cmd>bprevious<CR>")
+-- keymap.set("n", "<A-d>", "<cmd>bdelete<CR>")
+
+-- bufferline插件
+-- keymap.set("n", "<A-h>", ":BufferLineCyclePrev<CR>")
+-- keymap.set("n", "<A-l>", ":BufferLineCycleNext<CR>")
+
+-- barbar.nvim插件
+local map = vim.api.nvim_set_keymap
+local opts = { noremap = true, silent = true }
+
+-- Move to previous/next
+map("n", "<A-,>", "<Cmd>BufferPrevious<CR>", opts)
+map("n", "<A-.>", "<Cmd>BufferNext<CR>", opts)
+
+-- Re-order to previous/next
+map("n", "<A-<>", "<Cmd>BufferMovePrevious<CR>", opts)
+map("n", "<A->>", "<Cmd>BufferMoveNext<CR>", opts)
+
+-- Goto buffer in position...
+map("n", "<A-1>", "<Cmd>BufferGoto 1<CR>", opts)
+map("n", "<A-2>", "<Cmd>BufferGoto 2<CR>", opts)
+map("n", "<A-3>", "<Cmd>BufferGoto 3<CR>", opts)
+map("n", "<A-4>", "<Cmd>BufferGoto 4<CR>", opts)
+map("n", "<A-5>", "<Cmd>BufferGoto 5<CR>", opts)
+map("n", "<A-6>", "<Cmd>BufferGoto 6<CR>", opts)
+map("n", "<A-7>", "<Cmd>BufferGoto 7<CR>", opts)
+map("n", "<A-8>", "<Cmd>BufferGoto 8<CR>", opts)
+map("n", "<A-9>", "<Cmd>BufferGoto 9<CR>", opts)
+map("n", "<A-0>", "<Cmd>BufferLast<CR>", opts)
+
+-- Pin/unpin buffer
+map("n", "<A-p>", "<Cmd>BufferPin<CR>", opts)
+
+-- Goto pinned/unpinned buffer
+--                 :BufferGotoPinned
+--                 :BufferGotoUnpinned
+
+-- Close buffer
+map("n", "<A-c>", "<Cmd>BufferClose<CR>", opts)
+
+-- Wipeout buffer
+--                 :BufferWipeout
+
+-- Close commands
+--                 :BufferCloseAllButCurrent
+--                 :BufferCloseAllButPinned
+--                 :BufferCloseAllButCurrentOrPinned
+--                 :BufferCloseBuffersLeft
+--                 :BufferCloseBuffersRight
+
+-- Magic buffer-picking mode
+map("n", "<C-p>", "<Cmd>BufferPick<CR>", opts)
+map("n", "<C-s-p>", "<Cmd>BufferPickDelete<CR>", opts)
+
+-- Sort automatically by...
+map("n", "<Space>bb", "<Cmd>BufferOrderByBufferNumber<CR>", opts)
+map("n", "<Space>bn", "<Cmd>BufferOrderByName<CR>", opts)
+map("n", "<Space>bd", "<Cmd>BufferOrderByDirectory<CR>", opts)
+map("n", "<Space>bl", "<Cmd>BufferOrderByLanguage<CR>", opts)
+map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
+
+-- Other:
+-- :BarbarEnable - enables barbar (enabled by default)
+-- :BarbarDisable - very bad command, should never be used
