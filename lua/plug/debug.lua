@@ -153,13 +153,17 @@ return { -- NOTE: Yes, you can install new plugins here!
 		local dap_python = require("dap-python")
 
 		local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
-		-- local debugpy_path = mason_path .. "packages/debugpy/venv/Scripts/python"
-		local debugpy_path = "python"
-		dap_python.setup(debugpy_path)
+		-- local python_path = mason_path .. "packages/debugpy/venv/Scripts/python"
+
+		-- neovim中调试python3.8.6程序，启用项目根目录下.venv虚拟环境，结果启动debug后，会弹出一个.venv\Scripts \python.exe命令行窗口，此时可以考虑将python换为pythonw（后台无窗口进程，但这样input()操作可能会挂起），慎用
+		local python_path = "python"
+		dap_python.setup(python_path)
+
 		-- Debug adapter didn't respond. Either the adapter is slow ...
 		-- https://github.com/mfussenegger/nvim-dap/discussions/846
 		-- dap_python.default_port = 38000
 
+		-- 系统环境变量PYTHONPATH中加入各个项目根命令，避免报错ModuleNotFoundError
 		-- dap.configurations.python = {
 		-- 	{
 		-- 		type = "python",
@@ -168,8 +172,8 @@ return { -- NOTE: Yes, you can install new plugins here!
 		-- 		program = "${file}",
 		-- 		pythonPath = "python",
 		-- cwd = function()
-		-- 	-j https://github.com/mfussenegger/nvim-dap/discussions/919
-		-- 	-- util.root_pattern("pyproject.toml")(vim.fn.getcwd())
+		-- https://github.com/mfussenegger/nvim-dap/discussions/919
+		-- util.root_pattern("pyproject.toml")(vim.fn.getcwd())
 		-- 	return vim.fn.getcwd()
 		-- end,
 		--
@@ -179,5 +183,22 @@ return { -- NOTE: Yes, you can install new plugins here!
 		-- }
 
 		-- Java adapter、configuration无需额外配置，jdtls+java-debug已经绑定自动处理了
+
+		-- 当前项目根目录加入到系统环境变量PYTHONPATH，避免报错ModuleNotFoundError
+		dap.listeners.on_config["pythonpath_setup"] = function(config)
+			config = vim.deepcopy(config)
+
+			-- 调整Python配置
+			if config.type == "python" then
+				-- 设置debug解释器为当前插件选中的虚拟环境
+				config.pythonPath = require("venv-selector").python()
+
+				-- 确保 env 表存在
+				config.env = config.env or {}
+				-- 设置 PYTHONPATH 为当前工作目录
+				config.env.PYTHONPATH = vim.fn.getcwd()
+			end
+			return config
+		end
 	end,
 }

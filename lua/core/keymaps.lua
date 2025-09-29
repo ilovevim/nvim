@@ -1,6 +1,4 @@
 local keymap = vim.keymap
-local opts = { noremap = true, silent = true }
-
 -- 取消高亮
 keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
@@ -10,26 +8,45 @@ keymap.set("n", "N", "<cmd>call HiSearch('N')<CR>")
 
 -- 小技巧：显示当前位置所属函数名，原理是往回匹配顶格字符（即无空格或tab前缀）
 -- keymap.set("n", "<c-g>", "<cmd>echo getline(search('\\v^[[:alpha:]$_]', 'bn', 1, 100))<CR>", { desc = "outer scope" })
--- Diagnostic keymaps，[d、]d按键已经默认配置诊断上下跳转
+
+-- 诊断相关映射，[d和]d已经被默认映射了，此处重新映射是为了跳转后显示诊断浮窗（float=true）
 keymap.set("n", "<leader>dd", vim.diagnostic.setloclist, { desc = "diag: [d]ocument" })
-keymap.set("n", "<leader>di", function()
-	vim.diagnostic.open_float({ header = "", scope = "line" })
-end, { desc = "diag: [i]nfo" })
+keymap.set("n", "[d", function()
+	vim.diagnostic.jump({ count = -1, float = true })
+end, { desc = "diag: prev" })
+keymap.set("n", "]d", function()
+	vim.diagnostic.jump({ count = 1, float = true })
+end, { desc = "diag: next" })
+keymap.set("n", "<leader>dl", function()
+	vim.diagnostic.open_float()
+end, { desc = "diag: [l]ine" })
+keymap.set("n", "<leader>de", function()
+	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+end, { desc = "diag: [e]nable" })
 
 -- 诊断跳转键默认已映射到[d和]d（vim/_defaults.lua）
-vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, { desc = "diag: [p]rev" })
-vim.keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "diag: [n]ext" })
+-- keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, { desc = "diag: [p]rev" })
+-- keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "diag: [n]ext" })
 
 -- 模式切换，jk在visual模式下容易被触发取消区域选择
 -- keymap.set("i", "jk", "<ESC>")
 
 -- 多行移动
--- keymap.set("v", "J", ":m '>+1<CR>gv=gv")
--- keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 -- 注释，支持[count]gcc
 keymap.set("n", "<c-cr>", "gcc", { remap = true })
 keymap.set("i", "<c-cr>", "<esc>gcc", { remap = true })
+
+-- 若干快捷方式
+vim.keymap.set({ "n", "v" }, "<tab>", "%") -- 括号间跳转
+
+-- 快速调整窗口大小
+vim.keymap.set("n", "<C-Left>", "<C-w><")
+vim.keymap.set("n", "<C-Right>", "<C-w>>")
+vim.keymap.set("n", "<C-Up>", "<C-w>+")
+vim.keymap.set("n", "<C-Down>", "<C-w>-")
 
 -- 窗口
 -- keymap.set("n", "<leader>sv", "<C-w>v") -- 水平新增窗口
@@ -42,8 +59,12 @@ keymap.set("n", "<A-j>", ':cd <c-r>=expand("%:p:h")<cr>')
 keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
 
 -- 保存文件
-keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer [s]ave" })
-keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer [s]ave" })
+keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer: [s]ave" })
+keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer: [s]ave" })
+
+-- Lazy Sync同步插件
+keymap.set("n", "<leader>pl", "<cmd>Lazy sync<cr>", { desc = "plugin: [l]azy sync" })
+keymap.set("n", "<leader>pm", "<cmd>Mason<cr>", { desc = "plugin: [m]ason" })
 
 -- ---------- 插件 ---------- ---
 -- nvim-tree
@@ -56,14 +77,23 @@ keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer [s]ave" }
 -- keymap.set("n", "<F2>", "<cmd>AerialToggle!<CR>")
 
 -- toggleterm插件快捷键
-keymap.set("n", "<F3>", "<cmd>silent up | lua require('plug.toggleterm').run_file()<cr>", { desc = "run file" })
-keymap.set("i", "<F3>", "<esc><cmd>silent up | lua require('plug.toggleterm').run_file()<cr>", { desc = "run file" })
+keymap.set("n", "<F3>", "<cmd>silent up | lua require('plug.toggleterm').run_buffer()<cr>", { desc = "run file" })
+keymap.set("i", "<F3>", "<esc><cmd>silent up | lua require('plug.toggleterm').run_buffer()<cr>", { desc = "run file" })
+keymap.set("n", "<C-F3>", "<cmd>silent up | lua require('plug.toggleterm').run_project()<cr>", { desc = "run project" })
+keymap.set(
+	"i",
+	"<C-F3>",
+	"<esc><cmd>silent up | lua require('plug.toggleterm').run_project()<cr>",
+	{ desc = "run project" }
+)
 
--- 循环切换颜色主题
+-- 循环切换颜色主题、字体大小
 keymap.set("n", "<F12>", "<Cmd>lua require('core.themes').show_theme(0)<cr>", { desc = "show font and theme" })
 keymap.set("n", "<S-F12>", "<Cmd>lua require('core.themes').switch_ui(0)<cr>", { desc = "switch font and theme" })
 keymap.set("n", "<C-F12>", "<Cmd>lua require('core.themes').switch_ui(1)<cr>", { desc = "switch font" })
 keymap.set("n", "<A-F12>", "<Cmd>lua require('core.themes').switch_ui(2)<cr>", { desc = "switch theme" })
+keymap.set("n", "<C-F11>", "<Cmd>lua require('core.themes').switch_ui(3)<cr>", { desc = "increase font size" })
+keymap.set("n", "<A-F11>", "<Cmd>lua require('core.themes').switch_ui(4)<cr>", { desc = "decrease font size" })
 
 -- neovim-session-manager
 -- keymap.set("n", "<leader>wo", "<cmd>SessionManager load_session<CR>", { desc = "[o]pen session" })
@@ -100,35 +130,57 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+----------------------------------------
 -- dapui插件（表达式求值）
+----------------------------------------
 vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
 
+----------------------------------------
 -- inc-rename插件预览式更名，替换vim.lsp.buf.rename
-vim.keymap.set("n", "<leader>cr", function()
-	return ":IncRename " .. vim.fn.expand("<cword>")
-end, { expr = true, desc = "code: [r]ename" })
+----------------------------------------
+-- vim.keymap.set("n", "<leader>cr", function()
+-- 	return ":IncRename " .. vim.fn.expand("<cword>")
+-- end, { expr = true, desc = "code: [r]ename" })
 
+----------------------------------------
 -- Cybu.nvim插件切换buffer
+----------------------------------------
 -- vim.keymap.set("n", "<A-h>", "<Plug>(CybuPrev)")
 -- vim.keymap.set("n", "<A-l>", "<Plug>(CybuNext)")
 -- vim.keymap.set({ "n", "v" }, "<c-s-tab>", "<plug>(CybuLastusedPrev)")
 -- vim.keymap.set({ "n", "v" }, "<c-tab>", "<plug>(CybuLastusedNext)")
 
--- mini.nvim
-keymap.set("n", "<leader>wm", "<cmd>lua MiniFiles.open()<cr>", { desc = "workspace: [m]ini.file" })
+----------------------------------------
+-- mini.nvim插件
+----------------------------------------
+keymap.set("n", "<leader>wf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [f]ile" })
 -- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
 -- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
 
+----------------------------------------
 -- buffer管理
+----------------------------------------
 -- keymap.set("n", "<A-l>", "<cmd>bnext<CR>")
 -- keymap.set("n", "<A-h>", "<cmd>bprevious<CR>")
 -- keymap.set("n", "<A-d>", "<cmd>bdelete<CR>")
 
+----------------------------------------
 -- bufferline插件
+----------------------------------------
 -- keymap.set("n", "<A-h>", ":BufferLineCyclePrev<CR>")
 -- keymap.set("n", "<A-l>", ":BufferLineCycleNext<CR>")
 
+----------------------------------------
+-- Neogen插件（生成代码注释模板）
+----------------------------------------
+keymap.set("n", "<leader>cf", "<cmd>Neogen func<cr>", { desc = "comment: [f]unc" })
+keymap.set("n", "<leader>cF", "<cmd>Neogen file<cr>", { desc = "comment: [F]ile" })
+keymap.set("n", "<leader>cC", "<cmd>Neogen class<cr>", { desc = "comment: [C]lass" })
+keymap.set("n", "<leader>cT", "<cmd>Neogen type<cr>", { desc = "comment: [T]ype" })
+
+----------------------------------------
 -- barbar.nvim插件
+----------------------------------------
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 

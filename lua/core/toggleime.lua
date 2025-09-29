@@ -6,6 +6,9 @@ end
 -- 前置重新刷新，解决偶尔有迟钝反应现象
 vim.g.neovide_no_idle = true
 
+-- 启动时关闭输入法，以便于输入英文命令
+vim.g.neovide_input_ime = false
+
 -- 切换全屏
 vim.api.nvim_set_keymap("n", "<F11>", ":let g:neovide_fullscreen = !g:neovide_fullscreen<CR>", {})
 
@@ -19,7 +22,7 @@ local function set_ime(args)
 	end
 end
 
-local ime_group = vim.api.nvim_create_augroup("ime_input", { clear = true })
+local ime_group = vim.api.nvim_create_augroup("set_ime", { clear = true })
 
 vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave" }, {
 	group = ime_group,

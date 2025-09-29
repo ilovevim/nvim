@@ -40,6 +40,14 @@ local plugins = {
 					section_separators = { left = "", right = "" },
 				},
 				sections = {
+					lualine_a = {
+						{
+							"mode",
+							fmt = function(str)
+								return str:sub(1, 1)
+							end,
+						},
+					},
 					-- 状态栏c段显示navic代码导航信息，此处基于官方配置进行了改写
 					lualine_c = {
 						"filename",
@@ -62,10 +70,45 @@ local plugins = {
 							cond = require("noice").api.status.mode.has,
 							color = { fg = "#ff9e64" },
 						},
-						-- { -- fittencode插件状态
+						-- {
 						-- 	function()
-						-- 		local emoji = { "🚫", "⏸️ ", "⌛️", "⚠️ ", "0️⃣ ", "✅" }
-						-- 		return "🅕 " .. emoji[require("fittencode").get_current_status()]
+						-- 		-- Check if MCPHub is loaded
+						-- 		if not vim.g.loaded_mcphub then
+						-- 			return "󰐻 -"
+						-- 		end
+						--
+						-- 		local count = vim.g.mcphub_servers_count or 0
+						-- 		local status = vim.g.mcphub_status or "stopped"
+						-- 		local executing = vim.g.mcphub_executing
+						--
+						-- 		-- Show "-" when stopped
+						-- 		if status == "stopped" then
+						-- 			return "󰐻 -"
+						-- 		end
+						--
+						-- 		-- Show spinner when executing, starting, or restarting
+						-- 		if executing or status == "starting" or status == "restarting" then
+						-- 			local frames =
+						-- 				{ "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+						-- 			local frame = math.floor(vim.loop.now() / 100) % #frames + 1
+						-- 			return "󰐻 " .. frames[frame]
+						-- 		end
+						--
+						-- 		return "󰐻 " .. count
+						-- 	end,
+						-- 	color = function()
+						-- 		if not vim.g.loaded_mcphub then
+						-- 			return { fg = "#6c7086" } -- Gray for not loaded
+						-- 		end
+						--
+						-- 		local status = vim.g.mcphub_status or "stopped"
+						-- 		if status == "ready" or status == "restarted" then
+						-- 			return { fg = "#50fa7b" } -- Green for connected
+						-- 		elseif status == "starting" or status == "restarting" then
+						-- 			return { fg = "#ffb86c" } -- Orange for connecting
+						-- 		else
+						-- 			return { fg = "#ff5555" } -- Red for error/stopped
+						-- 		end
 						-- 	end,
 						-- },
 						"encoding",
@@ -114,23 +157,26 @@ local plugins = {
 		},
 		lazy = false,
 		keys = {
-			{ "<F1>", ":Neotree reveal<CR>", desc = "NeoTree reveal", silent = true },
+			{ "<F1>", ":Neotree toggle reveal<CR>", desc = "NeoTree toggle", silent = true },
 		},
-		opts = {
-			filesystem = {
-				window = {
-					width = 25,
-					mappings = {
-						["<F1>"] = "close_window",
+		config = function()
+			require("neo-tree").setup({
+				filesystem = {
+					window = {
+						width = 25,
+						mappings = {
+							["<F1>"] = "close_window",
+						},
+					},
+					filtered_items = {
+						hide_by_name = {
+							"__pycache__",
+							"gmcache",
+						},
 					},
 				},
-				filtered_items = {
-					hide_by_name = {
-						"__pycache__",
-					},
-				},
-			},
-		},
+			})
+		end,
 	},
 
 	"nvim-tree/nvim-web-devicons", -- 文档树图标
@@ -397,9 +443,22 @@ local plugins = {
 						client
 						and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf)
 					then
-						map("<leader>ct", function()
+						map("<leader>ch", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
-						end, "code: [t]oggle hint")
+						end, "code: [h]int toggle")
+					end
+
+					-- 尝试启用LSP自带的折叠功能
+					if
+						client
+						and client_supports_method(
+							client,
+							vim.lsp.protocol.Methods.textDocument_foldingRange,
+							event.buf
+						)
+					then
+						local win = vim.api.nvim_get_current_win()
+						vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
 					end
 
 					-- 增加navic代码导航栏（绑定后供winbar、statusline等控件使用）
@@ -420,9 +479,25 @@ local plugins = {
 						map("<leader>em", require("jdtls").extract_method, "extract [m]ethod", { "n", "v" })
 					end
 
+					local cwd = vim.fn.getcwd()
+
 					-- python项目根目录cwd加入到lsp模块搜索目录中，避免找不到模块显示错误
 					if client and client.name == "pyright" then
-						client.settings.python.analysis.extraPaths = { vim.fn.getcwd() }
+						client.settings.python.analysis.extraPaths = { cwd } -- pyright
+						if not vim.tbl_contains(vim.lsp.buf.list_workspace_folders(), cwd) then
+							vim.lsp.buf.add_workspace_folder(cwd)
+						end
+
+						-- 排除扫描目录，降低pyright内存消耗
+						client.settings.python.analysis.exclude =
+							{ "**/node_modules", "**/__pycache__", "**/.venv", "**/site-packages" }
+					end
+
+					if client and client.name == "basedpyright" then
+						client.settings.basedpyright.analysis.extraPaths = { cwd }
+						if not vim.tbl_contains(vim.lsp.buf.list_workspace_folders(), cwd) then
+							vim.lsp.buf.add_workspace_folder(cwd)
+						end
 					end
 				end,
 			})
@@ -526,21 +601,27 @@ local plugins = {
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				-- ts_ls = {},
 				--
-
+				-- https://luals.github.io/wiki/settings/
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},
 					-- capabilities = {},
 					settings = {
-						Lua = {
-							-- workspace = {checkThirtyParty = false},
-							hint = { enable = true },
-							completion = {
-								callSnippet = "Replace",
-							},
-							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-							-- diagnostics = { disable = { 'missing-fields' } },
-						},
+						-- Lua = {
+						-- 	-- workspace = {checkThirtyParty = false},
+						-- 	hint = {
+						-- 		enable = true, -- 确保启用 inlay hint
+						-- 		arrayIndex = "Enable", -- 数组索引提示
+						-- 		paramName = "All", -- 参数名提示
+						-- 		paramType = false, -- 参数类型提示
+						-- 		setType = true, -- 集合类型提示
+						-- 	},
+						-- 	completion = {
+						-- 		callSnippet = "Replace",
+						-- 	},
+						-- 	-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+						-- 	-- diagnostics = { disable = { 'missing-fields' } },
+						-- },
 					},
 				},
 				-- sqls = {
@@ -559,6 +640,21 @@ local plugins = {
 				-- 		},
 				-- 	},
 				-- },
+
+				-- ltex配置不起作用，暂不知原因
+				ltex = {
+					filetypes = { "latex", "tex", "bibtex", "markdown" }, -- 仅保留必要类型
+					settings = {
+						ltex = {
+							enabled = { "latex", "markdown" }, -- 关闭 gitcommit 等无关功能
+							-- 禁用耗时检查
+							checkers = {
+								latex = { enable = false }, -- 关闭 LaTeX 语法检查
+								spelling = { enable = false }, -- 关闭拼写检查
+							},
+						},
+					},
+				},
 			}
 
 			-- You can add other tools here that you want Mason to install
@@ -609,12 +705,17 @@ local plugins = {
 			})
 		end,
 	},
-
+	-- { -- hover信息美化
+	-- 	"Fildo7525/pretty_hover",
+	-- 	event = "LspAttach",
+	-- 	opts = {},
+	-- },
 	{ -- Autocompletion
 		"saghen/blink.cmp",
 		event = "VimEnter",
 		version = "1.*",
 		dependencies = {
+			-- "Kaiser-Yang/blink-cmp-avante",
 			-- Snippet Engine & its associated nvim-cmp source
 			{
 				"L3MON4D3/LuaSnip",
@@ -648,11 +749,29 @@ local plugins = {
 			{ -- AI辅助
 				"luozhiya/fittencode.nvim",
 				event = "VeryLazy",
-				config = function()
-					require("fittencode").setup({
-						completion_mode = "inline",
-					})
-				end,
+				opts = {
+					use_default_keymaps = false,
+					-- Default keymaps
+					keymaps = {
+						inline = {
+							["<A-o>"] = "accept_all_suggestions",
+							["<C-Down>"] = "accept_line",
+							["<C-Right>"] = "accept_word",
+							["<C-Up>"] = "revoke_line",
+							["<C-Left>"] = "revoke_word",
+							["<A-i>"] = "triggering_completion",
+						},
+						chat = {
+							["q"] = "close",
+							["[c"] = "goto_previous_conversation",
+							["]c"] = "goto_next_conversation",
+							["c"] = "copy_conversation",
+							["C"] = "copy_all_conversations",
+							["d"] = "delete_conversation",
+							["D"] = "delete_all_conversations",
+						},
+					},
+				},
 			},
 			"xzbdmw/colorful-menu.nvim",
 		},
@@ -706,9 +825,6 @@ local plugins = {
 			},
 
 			completion = {
-				-- By default, you may press `<c-space>` to show the documentation.
-				-- Optionally, set `auto_show = true` to show the documentation after a delay.
-				documentation = { auto_show = true, auto_show_delay_ms = 500 },
 				menu = {
 					draw = {
 						-- We don't need label_description now because label and label_description are already
@@ -726,16 +842,40 @@ local plugins = {
 						},
 					},
 				},
+				-- By default, you may press `<c-space>` to show the documentation.
+				-- Optionally, set `auto_show = true` to show the documentation after a delay.
+				documentation = { auto_show = true, auto_show_delay_ms = 500 },
 			},
 
 			sources = {
-				default = { "fittencode", "lsp", "path", "snippets", "buffer", "lazydev" },
+				-- "avante"
+				default = { "lsp", "path", "snippets", "buffer", "lazydev", "codecompanion" },
+				-- per_filetype = {
+				-- 	codecompanion = { "codecompanion" },
+				-- },
 				providers = {
+					-- avante = {
+					-- 	module = "blink-cmp-avante",
+					-- 	name = "Avante",
+					-- 	opts = {
+					-- 		-- options for blink-cmp-avante
+					-- 	},
+					-- },
 					lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 5 },
 					fittencode = {
 						name = "fittencode",
 						module = "fittencode.sources.blink",
-						score_offset = 100,
+						score_offset = 10,
+					},
+					buffer = {
+						opts = {
+							-- get all but "normal" buffers (recommended)
+							get_bufnrs = function()
+								return vim.tbl_filter(function(bufnr)
+									return vim.bo[bufnr].buftype == ""
+								end, vim.api.nvim_list_bufs())
+							end,
+						},
 					},
 				},
 			},
@@ -764,71 +904,254 @@ local plugins = {
 	-- 	dependencies = "hrsh7th/nvim-cmp",
 	-- },
 
-	{ -- 类似CursorIDE的AI插件
-		"yetone/avante.nvim",
-		event = "VeryLazy",
-		lazy = false,
-		version = false, -- set this if you want to always pull the latest change
-		opts = {
-			provider = "openrouter",
-			auto_suggestions_provider = "openrouter", -- Since auto-suggestions are a high-frequency operation and therefore expensive, it is recommended to specify an inexpensive provider or even a free provider: copilot
-			openai = {
-				endpoint = "https://api.deepseek.com/v1",
-				model = "deepseek-chat",
-				timeout = 30000, -- Timeout in milliseconds
-				temperature = 0,
-				max_tokens = 4096,
-				-- optional
-				api_key_name = "OPENAI_API_KEY", -- default OPENAI_API_KEY if not set
-			},
-			vendors = {
-				openrouter = {
-					__inherited_from = "openai",
-					endpoint = "https://openrouter.ai/api/v1",
-					-- model = "deepseek/deepseek-chat-v3-0324:free",
-					model = "qwen/qwen3-235b-a22b:free",
-					api_key_name = "OPENROUTER_API_KEY", -- default OPENAI_API_KEY if not set
-				},
-			},
-		},
-		-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-		-- build = "make",
-		build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false", -- for windows
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter",
-			-- "stevearc/dressing.nvim",
-			-- "folke/snacks.nvim",
-			"nvim-lua/plenary.nvim",
-			"MunifTanjim/nui.nvim",
-			--- The below dependencies are optional,
-			"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-			"zbirenbaum/copilot.lua", -- for providers='copilot'
-			{
-				-- support for image pasting
-				"HakonHarnes/img-clip.nvim",
-				event = "VeryLazy",
-				opts = {
-					-- recommended settings
-					default = {
-						embed_image_as_base64 = false,
-						prompt_for_file_name = false,
-						drag_and_drop = {
-							insert_mode = true,
-						},
-						-- required for Windows users
-						use_absolute_path = true,
+	-- { -- 类似CursorIDE的AI插件
+	-- 	"yetone/avante.nvim",
+	-- 	event = "VeryLazy",
+	-- 	lazy = false,
+	-- 	version = false, -- set this if you want to always pull the latest change
+	-- 	build = function()
+	-- 		-- conditionally use the correct build system for the current OS
+	-- 		if vim.fn.has("win32") == 1 then
+	-- 			return "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+	-- 		else
+	-- 			return "make"
+	-- 		end
+	-- 	end,
+	-- 	--@module 'avante'
+	-- 	--@type avante.Config
+	-- 	opts = {
+	-- 		provider = "p1",
+	-- 		providers = {
+	-- 			openai = {
+	-- 				hide_in_model_selector = true,
+	-- 			},
+	-- 			vertex = {
+	-- 				hide_in_model_selector = true,
+	-- 			},
+	-- 			vertex_claude = {
+	-- 				hide_in_model_selector = true,
+	-- 			},
+	-- 			p1 = {
+	-- 				disable_tools = true,
+	-- 				__inherited_from = "openai",
+	-- 				hide_in_model_selector = false,
+	-- 				endpoint = "https://openrouter.ai/api/v1",
+	-- 				api_key_name = "OPENROUTER_API_KEY",
+	-- 				model = "deepseek/deepseek-r1-0528:free",
+	-- 			},
+	-- 			p2 = {
+	-- 				disable_tools = true,
+	-- 				__inherited_from = "openai",
+	-- 				hide_in_model_selector = false,
+	-- 				endpoint = "https://openrouter.ai/api/v1",
+	-- 				api_key_name = "OPENROUTER_API_KEY",
+	-- 				model = "qwen/qwen3-coder:free",
+	-- 			},
+	-- 			p3 = {
+	-- 				disable_tools = true,
+	-- 				__inherited_from = "openai",
+	-- 				hide_in_model_selector = false,
+	-- 				endpoint = "https://openrouter.ai/api/v1",
+	-- 				api_key_name = "OPENROUTER_API_KEY",
+	-- 				model = "z-ai/glm-4.5-air:free",
+	-- 			},
+	-- 		},
+	-- 	},
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim",
+	-- 		"MunifTanjim/nui.nvim",
+	-- 		--- The below dependencies are optional,
+	-- 		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+	-- 		"nvim-telescope/telescope.nvim", -- for file_selector provider telescope
+	-- 		"zbirenbaum/copilot.lua", -- for providers='copilot'
+	-- 		-- "stevearc/dressing.nvim",
+	-- 		-- "folke/snacks.nvim",
+	-- 		{
+	-- 			-- support for image pasting
+	-- 			"HakonHarnes/img-clip.nvim",
+	-- 			event = "VeryLazy",
+	-- 			opts = {
+	-- 				-- recommended settings
+	-- 				default = {
+	-- 					embed_image_as_base64 = false,
+	-- 					prompt_for_file_name = false,
+	-- 					drag_and_drop = {
+	-- 						insert_mode = true,
+	-- 					},
+	-- 					-- required for Windows users
+	-- 					use_absolute_path = true,
+	-- 				},
+	-- 			},
+	-- 		},
+	-- 		{
+	-- 			-- Make sure to set this up properly if you have lazy=true
+	-- 			"MeanderingProgrammer/render-markdown.nvim",
+	-- 			opts = {
+	-- 				file_types = { "markdown", "Avante" },
+	-- 			},
+	-- 			ft = { "markdown", "Avante" },
+	-- 		},
+	-- 	},
+	-- },
+	{
+		"olimorris/codecompanion.nvim",
+		config = function()
+			local available_models = {
+				"x-ai/grok-4-fast:free",
+				"deepseek/deepseek-chat-v3.1:free",
+				-- "deepseek/deepseek-r1-0528:free",
+				"microsoft/mai-ds-r1:free",
+				"tngtech/deepseek-r1t2-chimera:free",
+				"qwen/qwen3-coder:free",
+				"moonshotai/kimi-dev-72b:free",
+				"z-ai/glm-4.5-air:free",
+				-- "google/gemini-2.0-flash-exp:free",
+				-- "openai/gpt-oss-20b:free",
+			}
+			local current_model = available_models[1]
+
+			local function select_model()
+				vim.ui.select(available_models, {
+					prompt = "Select Model:",
+				}, function(choice)
+					if choice then
+						current_model = choice
+						vim.notify("Selected model: " .. current_model)
+					end
+				end)
+			end
+
+			require("codecompanion").setup({
+				language = "Chinese",
+				strategies = {
+					chat = {
+						adapter = "openrouter",
+						-- keymaps = {
+						-- 	submit = {
+						-- 		modes = { n = "<CR>" },
+						-- 		description = "Submit",
+						-- 		callback = function(chat)
+						-- 			chat:apply_model(current_model)
+						-- 			chat:submit()
+						-- 		end,
+						-- 	},
+						-- },
+					},
+					inline = {
+						adapter = "openrouter",
 					},
 				},
-			},
-			{
-				-- Make sure to set this up properly if you have lazy=true
-				"MeanderingProgrammer/render-markdown.nvim",
-				opts = {
-					file_types = { "markdown", "Avante" },
+				adapters = {
+					http = {
+						openrouter = function()
+							return require("codecompanion.adapters").extend("openai_compatible", {
+								env = {
+									url = "https://openrouter.ai/api",
+									api_key = "OPENROUTER_API_KEY",
+									chat_url = "/v1/chat/completions",
+								},
+								schema = {
+									model = {
+										default = current_model,
+									},
+								},
+							})
+						end,
+					},
 				},
-				ft = { "markdown", "Avante" },
-			},
+				extensions = {
+					mcphub = {
+						callback = "mcphub.extensions.codecompanion",
+						opts = {
+							-- MCP Tools
+							make_tools = true, -- Make individual tools (@server__tool) and server groups (@server) from MCP servers
+							show_server_tools_in_chat = true, -- Show individual tools in chat completion (when make_tools=true)
+							add_mcp_prefix_to_tool_names = false, -- Add mcp__ prefix (e.g `@mcp__github`, `@mcp__neovim__list_issues`)
+							show_result_in_chat = true, -- Show tool results directly in chat buffer
+							format_tool = nil, -- function(tool_name:string, tool: CodeCompanion.Agent.Tool) : string Function to format tool names to show in the chat buffer
+							-- MCP Resources
+							make_vars = true, -- Convert MCP resources to #variables for prompts
+							-- MCP Prompts
+							make_slash_commands = true, -- Add MCP prompts as /slash commands
+						},
+					},
+					history = {
+						enabled = true,
+						opts = {
+							-- Keymap to open history from chat buffer (default: gh)
+							keymap = "gh",
+							-- Keymap to save the current chat manually (when auto_save is disabled)
+							save_chat_keymap = "sc",
+						},
+					},
+				},
+			})
+
+			-- 自定义快捷键
+			vim.keymap.set(
+				{ "n", "v" },
+				"<leader>ca",
+				"<cmd>CodeCompanionActions<cr>",
+				{ noremap = true, silent = true, desc = "ai: [a]ction" }
+			)
+			vim.keymap.set(
+				{ "n", "v" },
+				"<leader>cc",
+				"<cmd>CodeCompanionChat Toggle<cr>",
+				{ noremap = true, silent = true, desc = "ai: [c]hat" }
+			)
+			vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
+			vim.keymap.set("n", "<leader>cm", select_model, { desc = "ai: [m]odel" })
+			-- Expand 'cc' into 'CodeCompanion' in the command line
+			vim.cmd([[cab cc CodeCompanion]])
+
+			-- 右下角显示请求状态https://www.panziye.com/tool/14971.html#respond
+			local fidget = require("fidget")
+			local handler
+			if fidget then
+				-- Attach:
+				vim.api.nvim_create_autocmd({ "User" }, {
+					pattern = "CodeCompanionRequest*",
+					group = vim.api.nvim_create_augroup("CodeCompanionHooks", {}),
+					callback = function(request)
+						if request.match == "CodeCompanionRequestStarted" then
+							if handler then
+								handler.message = "Abort."
+								handler:cancel()
+								handler = nil
+							end
+							handler = fidget.progress.handle.create({
+								title = "",
+								message = "Thinking...",
+								lsp_client = { name = "CodeCompanion" },
+							})
+						elseif request.match == "CodeCompanionRequestFinished" then
+							if handler then
+								handler.message = "Done."
+								handler:finish()
+								handler = nil
+							end
+						end
+					end,
+				})
+			end
+		end,
+
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-treesitter/nvim-treesitter",
+			"ravitemer/codecompanion-history.nvim",
 		},
+	},
+	{
+		"ravitemer/mcphub.nvim",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+		},
+		build = "npm install -g mcp-hub@latest", -- Installs `mcp-hub` node binary globally
+		config = function()
+			require("mcphub").setup()
+		end,
 	},
 	-- { -- codeium
 	-- 	"Exafunction/codeium.nvim",
@@ -862,8 +1185,8 @@ local plugins = {
 	-- 	lazy = true,
 	-- 	ft = "python",
 	-- },
-	-- { --pymple.nvim需要安装gg和sed工具
-	-- 	-- PympleBuild安装报错，可以采用cargo手工安装
+	-- { --维护python import
+	-- 	-- 若PympleBuild安装报错，可手动安装cargo
 	-- 	"alexpasmantier/pymple.nvim",
 	-- 	dependencies = {
 	-- 		"nvim-lua/plenary.nvim",
@@ -874,21 +1197,31 @@ local plugins = {
 	-- 	},
 	-- 	build = ":PympleBuild",
 	-- 	config = function()
-	-- 		require("pymple").setup()
+	-- 		require("pymple").setup({
+	-- 			logging = {
+	-- 				level = "debug",
+	-- 			},
+	-- 		})
 	-- 	end,
 	-- },
-	{ -- 集成到telescope中的import工具
-		"ilovevim/telescope-import.nvim",
-		dependencies = "nvim-telescope/telescope.nvim",
-		config = function()
-			require("telescope").load_extension("import")
-		end,
+	-- ,
+	{
+		"piersolenski/import.nvim",
+		dependencies = {
+			-- One of the following pickers is required:
+			"nvim-telescope/telescope.nvim",
+			-- 'folke/snacks.nvim',
+			-- 'ibhagwan/fzf-lua',
+		},
+		opts = {
+			picker = "telescope",
+		},
 		keys = {
 			{
 				"<leader>ci",
-				-- ":Telescope import<cr><c-r><c-w>", -- 底层不接受传参（比如当前位置单词）
-				"<cmd>Telescope import<cr>",
-				mode = "n",
+				function()
+					require("import").pick()
+				end,
 				desc = "code: [i]mport",
 			},
 		},
@@ -1058,12 +1391,12 @@ local plugins = {
 		cmd = { "ConformInfo" },
 		keys = {
 			{
-				"<leader>cf",
+				"<leader>bf",
 				function()
 					require("conform").format({ async = true })
 				end,
 				mode = "",
-				desc = "code: [f]ormat",
+				desc = "buffer: [f]ormat",
 			},
 		},
 		opts = {
@@ -1155,6 +1488,15 @@ local plugins = {
 		},
 	},
 
+	{ -- Make sure to set this up properly if you have lazy=true
+		"MeanderingProgrammer/render-markdown.nvim",
+		-- dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.nvim" },
+		opts = {
+			file_types = { "markdown", "Avante", "codecompanion" },
+		},
+		ft = { "markdown", "Avante", "codecompanion" },
+	},
+
 	-- { -- litee插件
 	-- 	"ldelossa/litee.nvim",
 	-- 	event = "VeryLazy",
@@ -1188,11 +1530,11 @@ local plugins = {
 			require("Comment").setup()
 		end,
 	},
-	{ -- 自动补全括号
-		"windwp/nvim-autopairs",
-		event = "InsertEnter",
-		opts = {},
-	},
+	-- { -- 自动补全括号
+	-- 	"windwp/nvim-autopairs",
+	-- 	event = "InsertEnter",
+	-- 	opts = {},
+	-- },
 	{ -- mini插件Collection of various small independent plugins/modules
 		"echasnovski/mini.nvim",
 		event = "VimEnter",
@@ -1272,6 +1614,8 @@ local plugins = {
 				replace = { prefix = "" }, -- 默认为gr
 				sort = { prefix = "" }, -- 默认为gs
 			})
+			-- 平替nvim-autopairs插件
+			require("mini.pairs").setup()
 
 			-- 补全辅助，动态提示函数参数，和cmp集成有bug
 			-- 换用"ray-x/lsp_signature.nvim"
@@ -1497,7 +1841,7 @@ local plugins = {
 		"folke/flash.nvim", -- 闪电移动跳转
 		event = "VeryLazy",
 		---@type Flash.Config
-		opts = {}, -- labels = "asdfghjklqwertyuiopzxcvbnm;,0123456789[]./'\\" },
+		opts = { labels = "asdfghjklqwertyuiopzxcvbnm123456789" },
         -- stylua: ignore
         keys = {
             { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
@@ -1601,8 +1945,9 @@ local plugins = {
 	},
 	{ -- 高亮参数列表
 		"m-demare/hlargs.nvim",
-		opts = { use_colorpalette = true, sequential_colorpalette = true }, -- needed
+		opts = { use_colorpalette = true, sequential_colorpalette = false }, -- needed
 	},
+	-- "AckslD/swenv.nvim",
 	{ -- 切换python虚拟环境
 		"linux-cultist/venv-selector.nvim",
 		dependencies = {
@@ -1612,15 +1957,22 @@ local plugins = {
 			{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 		},
 		lazy = false,
-		branch = "regexp", -- This is the regexp branch, use this for the new version
+		-- branch = "regexp", -- This is the regexp branch, use this for the new version
 		config = function()
-			require("venv-selector").setup()
+			require("venv-selector").setup({
+				search = {
+					global = {
+						command = "fd python.exe$ C:/Users/luocm/AppData/Local/Programs/Python/ --max-depth 3 -E scripts -E Scripts",
+					},
+				},
+				-- dap_enabled = true,
+			})
 		end,
 		keys = {
 			-- Keymap to open VenvSelector to pick a venv.
-			{ "<leader>vs", "<cmd>VenvSelect<cr>" },
+			{ "<leader>dv", "<cmd>VenvSelect<cr>", desc = "debug: [v]env" },
 			-- Keymap to retrieve the venv from a cache (the one previously used for the same project directory).
-			{ "<leader>vc", "<cmd>VenvSelectCached<cr>" },
+			-- { "<leader>vc", "<cmd>VenvSelectCached<cr>" },
 		},
 	},
 	{ -- latex文档编写
@@ -1661,9 +2013,9 @@ local plugins = {
 		lazy = false,
 		keys = {
 			-- Will use Telescope if installed or a vim.ui.select picker otherwise
-			{ "<leader>wo", "<cmd>SessionSearch<CR>", desc = "session: [o]pen" },
-			{ "<leader>ws", "<cmd>SessionSave<CR>", desc = "session: [s]ave" },
-			{ "<leader>wt", "<cmd>SessionToggleAutoSave<CR>", desc = "session: [t]oggle save" },
+			{ "<leader>ws", "<cmd>AutoSession search<CR>", desc = "session: [s]earch" },
+			{ "<leader>wS", "<cmd>AutoSession save<CR>", desc = "session: [S]ave" },
+			{ "<leader>wt", "<cmd>AutoSession toggle<CR>", desc = "session: [t]oggle" },
 		},
 		---enables autocomplete for opts
 		---@module "auto-session"
@@ -1803,7 +2155,7 @@ local plugins = {
 
 			-- Document existing key chains
 			spec = {
-				{ "<leader>a", group = "[a]vante" },
+				{ "<leader>a", group = "avante" },
 				{ "<leader>b", group = "[b]uffer" },
 				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
 				{ "<leader>d", group = "[d]ebug" },
@@ -1814,6 +2166,7 @@ local plugins = {
 				{ "<leader>v", group = "[v]env" },
 				{ "<leader>j", group = "[j]upyter" },
 				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
+				{ "<leader>p", group = "[p]lugin", mode = { "n", "v" } },
 			},
 		},
 	},
@@ -1826,13 +2179,88 @@ local plugins = {
 	-- 	},
 	-- },
 	"voldikss/vim-translator", -- 国人写的翻译插件
-	"sindrets/diffview.nvim", -- 比较代码差异
-	{ -- 按键优化提示
-		"m4xshen/hardtime.nvim",
-		dependencies = { "MunifTanjim/nui.nvim" },
-		opts = {},
-		event = "BufEnter",
+	{ -- 弹窗翻译软件，暂时仅支持"yandex", "argos", "apertium", "google"且连不上或需要auth_key
+		"potamides/pantran.nvim",
+		config = function()
+			local pantran = require("pantran")
+			pantran.setup({ default_engine = "google" })
+
+			local opts = { noremap = true, silent = true, expr = true }
+			vim.keymap.set("n", "<Leader>tr", pantran.motion_translate, opts)
+			vim.keymap.set("n", "<leader>trr", function()
+				return pantran.motion_translate() .. "_"
+			end, opts)
+			vim.keymap.set("x", "<leader>tr", pantran.motion_translate, opts)
+		end,
 	},
+	-- {  --翻译软件，依赖于trans命令（translate-shell）
+	-- 	"niuiic/translate.nvim",
+	-- 	config = function()
+	-- 		local function trans_to_zh()
+	-- 			-- require("translate").translate({
+	-- 			-- 	get_command = function(input)
+	-- 			-- 		return {
+	-- 			-- 			"trans",
+	-- 			-- 			"-e",
+	-- 			-- 			"bing",
+	-- 			-- 			"-b",
+	-- 			-- 			":zh",
+	-- 			-- 			input,
+	-- 			-- 		}
+	-- 			-- 	end,
+	-- 			-- 	-- input | clipboard | selection
+	-- 			-- 	input = "selection",
+	-- 			-- 	-- open_float | notify | copy | insert | replace
+	-- 			-- 	output = { "open_float" },
+	-- 			-- 	resolve_result = function(result)
+	-- 			-- 		if result.code ~= 0 then
+	-- 			-- 			return nil
+	-- 			-- 		end
+	-- 			--
+	-- 			-- 		return string.match(result.stdout, "(.*)\n")
+	-- 			-- 	end,
+	-- 			-- })
+	-- 		end
+	--
+	-- 		local function trans_to_en()
+	-- 			require("translate").translate({
+	-- 				get_command = function(input)
+	-- 					return {
+	-- 						"trans",
+	-- 						"-e",
+	-- 						"bing",
+	-- 						"-b",
+	-- 						":en",
+	-- 						input,
+	-- 					}
+	-- 				end,
+	-- 				input = "selection",
+	-- 				output = { "replace" },
+	-- 				resolve_result = function(result)
+	-- 					if result.code ~= 0 then
+	-- 						return nil
+	-- 					end
+	--
+	-- 					return string.match(result.stdout, "(.*)\n")
+	-- 				end,
+	-- 			})
+	-- 		end
+	--
+	-- 		local opts = { noremap = true, silent = true, expr = true }
+	-- 		vim.keymap.set("n", "<Leader>te", trans_to_en, opts)
+	-- 		vim.keymap.set("n", "<Leader>tz", trans_to_zh, opts)
+	-- 	end,
+	-- 	dependencies = { "niuiic/omega.nvim" },
+	-- },
+
+	"sindrets/diffview.nvim", -- 比较代码差异
+	-- "ThePrimeagen/vim-be-good",
+	-- { -- 按键优化提示
+	-- 	"m4xshen/hardtime.nvim",
+	-- 	dependencies = { "MunifTanjim/nui.nvim" },
+	-- 	opts = {},
+	-- 	event = "BufEnter",
+	-- },
 	{ -- 自动切换f-strings
 		"chrisgrieser/nvim-puppeteer",
 		lazy = false, -- plugin lazy-loads itself.
@@ -1861,12 +2289,12 @@ local plugins = {
 			})
 		end,
 	},
-	{ -- 变量改名preview效果
-		"smjonas/inc-rename.nvim",
-		config = function()
-			require("inc_rename").setup()
-		end,
-	},
+	-- { -- 变量改名preview效果
+	-- 	"smjonas/inc-rename.nvim",
+	-- 	config = function()
+	-- 		require("inc_rename").setup()
+	-- 	end,
+	-- },
 	-- { -- 切换buffer小浮窗
 	-- 	"ghillb/cybu.nvim",
 	-- 	dependencies = { "nvim-tree/nvim-web-devicons", "nvim-lua/plenary.nvim" },
@@ -1895,7 +2323,7 @@ local plugins = {
 	},
 	{ -- 自动清理未使用的buffer，确保数量在限定范围内
 		"ChuufMaster/buffer-vacuum",
-		opts = { max_buffers = 7 },
+		opts = { max_buffers = 15 },
 	},
 	-- { -- 切分代码行/汇总代码块：未比mini.splitjoin更好
 	-- 	"Wansmer/treesj",
@@ -1920,14 +2348,14 @@ local plugins = {
 	-- 		require("regexplainer").setup()
 	-- 	end,
 	-- },
-	{ -- 正则表达式解释
-		"tomiis4/Hypersonic.nvim",
-		event = "CmdlineEnter",
-		cmd = "Hypersonic",
-		config = function()
-			require("hypersonic").setup({})
-		end,
-	},
+	-- { -- 正则表达式解释
+	-- 	"tomiis4/Hypersonic.nvim",
+	-- 	event = "CmdlineEnter",
+	-- 	cmd = "Hypersonic",
+	-- 	config = function()
+	-- 		require("hypersonic").setup({})
+	-- 	end,
+	-- },
 	{ -- 提取url清单
 		"axieax/urlview.nvim",
 		opts = {},
@@ -2005,13 +2433,26 @@ local plugins = {
 	-- { "nordtheme/vim", lazy = true },
 	{ "rakr/vim-one", lazy = true },
 	-- { "ayu-theme/ayu-vim", lazy = true },
-	{ "nyoom-engineering/oxocarbon.nvim", lazy = true },
+	-- { "nyoom-engineering/oxocarbon.nvim", lazy = true },
 	{ "rmehri01/onenord.nvim", lazy = true },
 	-- { "calind/selenized.nvim", lazy = true },
 	{ "xero/miasma.nvim", lazy = true },
-	{ "mhartington/oceanic-next", lazy = true },
+	-- { "mhartington/oceanic-next", lazy = true },
 	{ "catppuccin/nvim", name = "catppuccin", lazy = true },
-	{ "rose-pine/neovim", lazy = true },
+	-- { "miikanissi/modus-themes.nvim", priority = 1000 },
+	{ "Mofiqul/dracula.nvim", lazy = true },
+	{ "glepnir/zephyr-nvim", lazy = true },
+	{ "JoosepAlviste/palenightfall.nvim", lazy = true },
+	{
+		"rose-pine/neovim",
+		lazy = true,
+		config = function()
+			require("rose-pine").setup({
+				styles = { italic = false },
+			})
+		end,
+	},
+	-- { "scottmckendry/cyberdream.nvim", lazy = true },
 	-- { -- neosolarized
 	-- 	"svrana/neosolarized.nvim",
 	-- 	lazy = true,
@@ -2067,7 +2508,7 @@ require("core.themes")
 require("core.toggleime")
 
 -- 其他插件
-require("plug.autopairs")
+-- require("plug.autopairs")
 require("plug.toggleterm")
 require("plug.filetype")
 -- require("plug.bufferline")

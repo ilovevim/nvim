@@ -2,12 +2,11 @@
 math.randomseed(os.time())
 
 -- 设置只有neovide才能支持的NerdFont（连字符等），在themes.lua中切换
--- "VictorMono_NFM:霞鹜文楷等宽:h10", -- 字体太细
--- "AnonymicePro_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
--- "UbuntuMono_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- Ubuntu系统专用字体，英文字体太小
--- "Inconsolata_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
 -- "SpaceMono_Nerd_Font:h12", -- 行间距较大
+-- "AnonymicePro_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
+-- "Inconsolata_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
 -- "SF_Mono:h12" -- 字体加载报错
+
 -- 以下字体共有问题：Aerial大纲插件中类、函数图标显示异常
 -- "Monoisome:h12",
 -- "MonacoLigaturized:h12",
@@ -15,27 +14,36 @@ math.randomseed(os.time())
 -- "Hasklig:h12" -- 从SourceCodePro衍生，增加连字符
 -- "Noto_Sans_Mono_CJK_SC,等距更纱黑体_SC:h11",
 -- "Monoid_Nerd_Font_Mono:h11", -- 老牌编程字体（英文大写比小写大太多）
+-- "YaHei_Consolas_Hybrid:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
+-- "LXGW_Bright_Code:h13", -- Monospace+霞鹜文楷等宽合成字体
 local fonts = {
-	"SauceCodePro_NFM,等距更纱黑体_SC:h11", -- 英文字体显小，显得中文字体过大
-	"JetBrainsMono_NF,等距更纱黑体_SC:h11",
-	"FiraCode_Nerd_Font,等距更纱黑体_SC:h11",
-	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h11",
-	"CasCadia_Code_NF,霞鹜文楷等宽:h11",
-	"CommitMono_Nerd_Font,等距更纱黑体_SC:h11", -- 以Fira Code和JetBrains Mono为灵感制作
-	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h11",
-	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h11", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
-	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- IBM出品
-	"GeistMono_NFM,霞鹜文楷等宽:h11",
-	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h11", -- 专为编码设计
-	"Maple_Mono_Normal_NF_CN:h11",
-	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h12",
-	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
-	"Iosevka_NFM,霞鹜文楷等宽:h12", -- 中文版即为Sarasa（等距更纱黑体）
-	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"UbuntuMono_Nerd_Font_Mono,等线:h14", -- Ubuntu系统专用字体，英文字体太小
+	"Mononoki_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
+	"SauceCodePro_NFM,等距更纱黑体_SC:h12", -- 英文字体显小，显得中文字体过大
+	"JetBrainsMono_NF,等距更纱黑体_SC:h12",
+	"FiraCode_Nerd_Font,等距更纱黑体_SC:h12",
+	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"CasCadia_Code_NF,霞鹜文楷等宽:h12",
+	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
+	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h12",
+	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h12", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
+	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- IBM出品
+	"GeistMono_NFM,霞鹜文楷等宽:h12",
+	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 专为编码设计
+	"Maple_Mono_Normal_NF_CN:h12",
+	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- 英文字体显小，中文字体对比过大
+	"Iosevka_NFM,霞鹜文楷等宽:h13", -- 中文版即为Sarasa（等距更纱黑体）
+	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"RecMonoLinear_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"IntoneMono_NFM,霞鹜文楷等宽:h12",
+	"Monaspace_Argon_NF,霞鹜文楷等宽:h12",
+	"Google_Sans_Code_NF,霞鹜文楷等宽:h12",
 }
 
 -- 自选颜色得到主题
--- "molokai", "neosolarized", "ayu",
+-- "molokai", "neosolarized", "ayu", "oxocarbon", "OceanicNext", "modus",
 local themes = {
 	"tokyonight",
 	"gruvbox-material",
@@ -53,10 +61,11 @@ local themes = {
 	"PaperColor",
 	"monokai-pro",
 	"one",
-	"oxocarbon",
 	"onenord",
 	"miasma",
-	"OceanicNext",
+	"dracula",
+	"zephyr",
+	"palenightfall",
 }
 
 -- 字体、颜色索引，lua中数组下标从1开始
@@ -103,6 +112,26 @@ M.switch_theme = function(step)
 	vim.api.nvim_command("colorscheme " .. themes[theme_idx]) -- .. "|redraw!")
 end
 
+-- 增减字号大小
+M.change_font_size = function(step)
+	local font_str = fonts[font_idx]
+	local size_str = font_str:match("h(%d+)$")
+	if not size_str then
+		vim.notify("Font size not specified: " .. font_str)
+		return
+	end
+	local new_size = tonumber(size_str) + step
+
+	-- 限制字体大小范围
+	new_size = math.max(8, math.min(15, new_size))
+	font_str = font_str:gsub("h%d+$", "h" .. new_size)
+	fonts[font_idx] = font_str
+
+	-- 应用新字体
+	vim.o.guifont = font_str
+	vim.notify(font_str)
+end
+
 -- 显示主题和字体，切换字体代码中redraw不起作用
 M.show_theme = function(flag)
 	flag = flag or 0
@@ -132,6 +161,14 @@ M.switch_ui = function(flag)
 	end
 	if flag == 0 or flag == 2 then
 		M.switch_theme()
+	end
+
+	if flag == 3 then
+		M.change_font_size(1)
+	end
+
+	if flag == 4 then
+		M.change_font_size(-1)
 	end
 
 	M.show_theme(flag)

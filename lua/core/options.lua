@@ -26,9 +26,13 @@ vim.o.jumpoptions = "stack" -- 跳转历史用堆栈模式
 -- 不换行
 -- vim.o.wrap = true
 
+-- 折叠相关配置
+vim.o.foldcolumn = "0" -- '0' is not bad
 -- vim.o.foldmethod = "indent"
 vim.o.foldmethod = "expr"
-vim.o.foldexpr = "nvim_treesitter#foldexpr()"
+-- vim.o.foldexpr = "nvim_treesitter#foldexpr()"
+vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 -- vim.o.foldlevel = 1
 vim.o.foldlevelstart = 1
 vim.o.foldenable = false
@@ -173,3 +177,38 @@ vim.g.translator_default_engines = { "bing", "haici", "youdao" }
 
 -- molten-nvim插件
 -- vim.g.python3_host_prog = vim.fn.expand("C:/utility/.venv/neovim/Scripts/python.exe")
+
+-- 折叠文本自定义函数增加高亮，系统默认的foldtext()没有高亮
+-- Source: https://www.reddit.com/r/neovim/comments/1fzn1zt/custom_fold_text_function_with_treesitter_syntax/
+local function fold_virt_text(result, start_text, lnum)
+	local text = ""
+	local hl
+	for i = 1, #start_text do
+		local char = start_text:sub(i, i)
+		local captured_highlights = vim.treesitter.get_captures_at_pos(0, lnum, i - 1)
+		local outmost_highlight = captured_highlights[#captured_highlights]
+		if outmost_highlight then
+			local new_hl = "@" .. outmost_highlight.capture
+			if new_hl ~= hl then
+				-- as soon as new hl appears, push substring with current hl to table
+				table.insert(result, { text, hl })
+				text = ""
+				hl = nil
+			end
+			text = text .. char
+			hl = new_hl
+		else
+			text = text .. char
+		end
+	end
+	table.insert(result, { text, hl })
+end
+function _G.custom_foldtext()
+	local start_text = vim.fn.getline(vim.v.foldstart):gsub("\t", string.rep(" ", vim.o.tabstop))
+	local nline = vim.v.foldend - vim.v.foldstart
+	local result = {}
+	fold_virt_text(result, start_text, vim.v.foldstart - 1)
+	table.insert(result, { " ... ↙ " .. nline .. " lines", "DiffAdd" })
+	return result
+end
+vim.opt.foldtext = "v:lua.custom_foldtext()"
