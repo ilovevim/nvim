@@ -25,12 +25,16 @@ return { -- NOTE: Yes, you can install new plugins here!
 
 		-- Add your own debuggers here
 		-- "leoluz/nvim-dap-go",
-		"mfussenegger/nvim-dap-python",
+
+		-- 默认会build并且报luarocks错误，暂时先关闭build
+		{ "mfussenegger/nvim-dap-python", build = false },
 	},
+
 	keys = {
 		-- Basic debugging keymaps, feel free to change to your liking!
 		{
-			"<leader>ds",
+			-- "<leader>ds",
+			"<M-r>",
 			function()
 				require("dap").continue()
 			end,

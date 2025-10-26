@@ -74,7 +74,7 @@ M.detect_mainfile = function(filetype)
 
 	local patterns = {}
 	if filetype == "python" then
-		patterns = { "main%.py$", "app%.py$" }
+		patterns = { "main%.py$", "app%.py$", "run%.py$" }
 	elseif filetype == "java" then
 		patterns = { "Main%.java$", ".*Application%.java$" }
 	else

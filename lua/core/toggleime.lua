@@ -9,8 +9,11 @@ vim.g.neovide_no_idle = true
 -- 启动时关闭输入法，以便于输入英文命令
 vim.g.neovide_input_ime = false
 
--- 切换全屏
-vim.api.nvim_set_keymap("n", "<F11>", ":let g:neovide_fullscreen = !g:neovide_fullscreen<CR>", {})
+-- 切换全屏，直接let设置在noice插件下浮窗会出现频闪
+-- vim.api.nvim_set_keymap("n", "<F11>", ":let g:neovide_fullscreen = !g:neovide_fullscreen<CR>", {})
+vim.keymap.set("n", "<F11>", function()
+	vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
+end, { silent = true })
 
 -- 输入法禁用开关：仅在insert/search模式下打开ime输入，其他关闭输入法
 -- https://neovide.dev/configuration.html

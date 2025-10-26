@@ -39,8 +39,9 @@ keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 keymap.set("n", "<c-cr>", "gcc", { remap = true })
 keymap.set("i", "<c-cr>", "<esc>gcc", { remap = true })
 
--- 若干快捷方式
-vim.keymap.set({ "n", "v" }, "<tab>", "%") -- 括号间跳转
+-- 若干快捷键
+-- 不要映射<tab>，<c-i>与它键码相同，会受影响
+vim.keymap.set({ "n", "v" }, "<c-tab>", "%") -- 括号间跳转
 
 -- 快速调整窗口大小
 vim.keymap.set("n", "<C-Left>", "<C-w><")
@@ -63,8 +64,8 @@ keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer: [s]ave" })
 keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer: [s]ave" })
 
 -- Lazy Sync同步插件
-keymap.set("n", "<leader>pl", "<cmd>Lazy sync<cr>", { desc = "plugin: [l]azy sync" })
-keymap.set("n", "<leader>pm", "<cmd>Mason<cr>", { desc = "plugin: [m]ason" })
+keymap.set("n", "<leader>ml", "<cmd>Lazy sync<cr>", { desc = "misc: [l]azy" })
+keymap.set("n", "<leader>mm", "<cmd>Mason<cr>", { desc = "misc: [m]ason" })
 
 -- ---------- 插件 ---------- ---
 -- nvim-tree
@@ -133,7 +134,14 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 ----------------------------------------
 -- dapui插件（表达式求值）
 ----------------------------------------
-vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
+vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval(nil, {enter=true})<CR>")
+
+-- 输入自定义表达式求值
+keymap.set("n", "<a-l>", function()
+	vim.ui.input({ prompt = "Eval expr:" }, function(expr)
+		require("dapui").eval(expr:gsub("\r", "\n"), { enter = true })
+	end)
+end, { desc = "eval custom expr" })
 
 ----------------------------------------
 -- inc-rename插件预览式更名，替换vim.lsp.buf.rename
@@ -153,7 +161,7 @@ vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval()<CR>")
 ----------------------------------------
 -- mini.nvim插件
 ----------------------------------------
-keymap.set("n", "<leader>wf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [f]ile" })
+keymap.set("n", "<leader>mf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [f]ile" })
 -- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
 -- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
 
@@ -173,10 +181,10 @@ keymap.set("n", "<leader>wf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [
 ----------------------------------------
 -- Neogen插件（生成代码注释模板）
 ----------------------------------------
-keymap.set("n", "<leader>cf", "<cmd>Neogen func<cr>", { desc = "comment: [f]unc" })
-keymap.set("n", "<leader>cF", "<cmd>Neogen file<cr>", { desc = "comment: [F]ile" })
-keymap.set("n", "<leader>cC", "<cmd>Neogen class<cr>", { desc = "comment: [C]lass" })
-keymap.set("n", "<leader>cT", "<cmd>Neogen type<cr>", { desc = "comment: [T]ype" })
+keymap.set("n", "<leader>cf", "<cmd>Neogen func<cr>", { desc = "doc: [f]unc" })
+keymap.set("n", "<leader>cF", "<cmd>Neogen file<cr>", { desc = "doc: [F]ile" })
+keymap.set("n", "<leader>cC", "<cmd>Neogen class<cr>", { desc = "doc: [C]lass" })
+keymap.set("n", "<leader>cT", "<cmd>Neogen type<cr>", { desc = "doc: [T]ype" })
 
 ----------------------------------------
 -- barbar.nvim插件
@@ -229,11 +237,11 @@ map("n", "<C-p>", "<Cmd>BufferPick<CR>", opts)
 map("n", "<C-s-p>", "<Cmd>BufferPickDelete<CR>", opts)
 
 -- Sort automatically by...
-map("n", "<Space>bb", "<Cmd>BufferOrderByBufferNumber<CR>", opts)
-map("n", "<Space>bn", "<Cmd>BufferOrderByName<CR>", opts)
-map("n", "<Space>bd", "<Cmd>BufferOrderByDirectory<CR>", opts)
-map("n", "<Space>bl", "<Cmd>BufferOrderByLanguage<CR>", opts)
-map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
+-- map("n", "<Space>bb", "<Cmd>BufferOrderByBufferNumber<CR>", opts)
+-- map("n", "<Space>bn", "<Cmd>BufferOrderByName<CR>", opts)
+-- map("n", "<Space>bd", "<Cmd>BufferOrderByDirectory<CR>", opts)
+-- map("n", "<Space>bl", "<Cmd>BufferOrderByLanguage<CR>", opts)
+-- map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
 
 -- Other:
 -- :BarbarEnable - enables barbar (enabled by default)

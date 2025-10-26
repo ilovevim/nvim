@@ -17,55 +17,58 @@ math.randomseed(os.time())
 -- "YaHei_Consolas_Hybrid:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
 -- "LXGW_Bright_Code:h13", -- Monospace+霞鹜文楷等宽合成字体
 local fonts = {
-	"UbuntuMono_Nerd_Font_Mono,等线:h14", -- Ubuntu系统专用字体，英文字体太小
-	"Mononoki_Nerd_Font_Mono,霞鹜文楷等宽:h13",
-	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
-	"SauceCodePro_NFM,等距更纱黑体_SC:h12", -- 英文字体显小，显得中文字体过大
-	"JetBrainsMono_NF,等距更纱黑体_SC:h12",
-	"FiraCode_Nerd_Font,等距更纱黑体_SC:h12",
-	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h12",
-	"CasCadia_Code_NF,霞鹜文楷等宽:h12",
-	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
-	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h12",
-	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h12", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
 	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- IBM出品
-	"GeistMono_NFM,霞鹜文楷等宽:h12",
-	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 专为编码设计
-	"Maple_Mono_Normal_NF_CN:h12",
+	"CasCadia_Code_NF,霞鹜文楷等宽:h12",
 	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h13",
-	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- 英文字体显小，中文字体对比过大
-	"Iosevka_NFM,霞鹜文楷等宽:h13", -- 中文版即为Sarasa（等距更纱黑体）
+	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
 	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h13",
-	"RecMonoLinear_Nerd_Font_Mono,霞鹜文楷等宽:h12",
-	"IntoneMono_NFM,霞鹜文楷等宽:h12",
-	"Monaspace_Argon_NF,霞鹜文楷等宽:h12",
+	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- 英文字体显小，中文字体对比过大
+	"FiraCode_Nerd_Font,等距更纱黑体_SC:h12",
+	"GeistMono_NFM,霞鹜文楷等宽:h12",
 	"Google_Sans_Code_NF,霞鹜文楷等宽:h12",
+	"Hack_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"Hurmit_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 专为编码设计
+	"IntoneMono_NFM,霞鹜文楷等宽:h12",
+	"Iosevka_NFM,霞鹜文楷等宽:h13", -- 中文版即为Sarasa（等距更纱黑体）
+	"JetBrainsMono_NF,等距更纱黑体_SC:h12",
+	"Maple_Mono_Normal_NF_CN:h12",
+	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h12", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
+	"Monaspace_Argon_NF,霞鹜文楷等宽:h12",
+	"Mononoki_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"RecMonoLinear_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h12",
+	"SauceCodePro_NFM,等距更纱黑体_SC:h12", -- 英文字体显小，显得中文字体过大
+	"UbuntuMono_Nerd_Font_Mono,等线:h13", -- Ubuntu系统专用字体，英文字体太小
+	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
 }
 
 -- 自选颜色得到主题
 -- "molokai", "neosolarized", "ayu", "oxocarbon", "OceanicNext", "modus",
+-- horizon字体太红
 local themes = {
-	"tokyonight",
-	"gruvbox-material",
+	"bluloco",
 	"catppuccin",
-	"kanagawa",
-	"hybrid",
-	"sonokai",
-	"onedark",
-	"everforest",
-	"nightfox",
-	"rose-pine",
-	"vscode",
-	"github_dark_dimmed",
-	"jellybeans",
-	"PaperColor",
-	"monokai-pro",
-	"one",
-	"onenord",
-	"miasma",
 	"dracula",
-	"zephyr",
+	"everforest",
+	"github_dark_dimmed",
+	"gruvbox-material",
+	"hybrid",
+	"jellybeans",
+	"kanagawa",
+	"melange",
+	"miasma",
+	"monokai-pro",
+	"nightfox",
+	"one",
+	"onedark",
+	"onenord",
 	"palenightfall",
+	"PaperColor",
+	"rose-pine",
+	"sonokai",
+	"tokyonight",
+	"vscode",
+	"zephyr",
 }
 
 -- 字体、颜色索引，lua中数组下标从1开始

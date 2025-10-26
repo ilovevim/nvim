@@ -27,7 +27,12 @@ rtp:prepend(lazypath)
 
 -- 插件配置
 local plugins = {
-	"NMAC427/guess-indent.nvim", -- Detect tabstop and shiftwidth automatically
+	{ -- Detect tabstop and shiftwidth automatically
+		"NMAC427/guess-indent.nvim",
+		config = function()
+			require("guess-indent").setup({})
+		end,
+	},
 	-- { "akinsho/bufferline.nvim", version = "*", dependencies = "nvim-tree/nvim-web-devicons" },
 	{ -- bufferline、lualine可mini相关套件替换
 		"nvim-lualine/lualine.nvim",
@@ -445,7 +450,7 @@ local plugins = {
 					then
 						map("<leader>ch", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
-						end, "code: [h]int toggle")
+						end, "code: [h]int")
 					end
 
 					-- 尝试启用LSP自带的折叠功能
@@ -491,13 +496,6 @@ local plugins = {
 						-- 排除扫描目录，降低pyright内存消耗
 						client.settings.python.analysis.exclude =
 							{ "**/node_modules", "**/__pycache__", "**/.venv", "**/site-packages" }
-					end
-
-					if client and client.name == "basedpyright" then
-						client.settings.basedpyright.analysis.extraPaths = { cwd }
-						if not vim.tbl_contains(vim.lsp.buf.list_workspace_folders(), cwd) then
-							vim.lsp.buf.add_workspace_folder(cwd)
-						end
 					end
 				end,
 			})
@@ -997,16 +995,21 @@ local plugins = {
 		"olimorris/codecompanion.nvim",
 		config = function()
 			local available_models = {
-				"x-ai/grok-4-fast:free",
-				"deepseek/deepseek-chat-v3.1:free",
+				-- 硅基流动上模型
+				"deepseek-ai/DeepSeek-V3.2-Exp",
+
+				-- openrouter上模型
+				-- "deepseek/deepseek-chat-v3.1:free",
+				-- "microsoft/mai-ds-r1:free",
+				-- "tngtech/deepseek-r1t2-chimera:free",
+				-- "qwen/qwen3-coder:free",
+				-- "moonshotai/kimi-dev-72b:free",
+				-- "z-ai/glm-4.5-air:free",
+
 				-- "deepseek/deepseek-r1-0528:free",
-				"microsoft/mai-ds-r1:free",
-				"tngtech/deepseek-r1t2-chimera:free",
-				"qwen/qwen3-coder:free",
-				"moonshotai/kimi-dev-72b:free",
-				"z-ai/glm-4.5-air:free",
 				-- "google/gemini-2.0-flash-exp:free",
 				-- "openai/gpt-oss-20b:free",
+				-- "x-ai/grok-4-fast:free",
 			}
 			local current_model = available_models[1]
 
@@ -1022,7 +1025,8 @@ local plugins = {
 			end
 
 			require("codecompanion").setup({
-				language = "Chinese",
+				opts = { language = "Chinese" },
+				-- tools = { enabled = false },
 				strategies = {
 					chat = {
 						adapter = "openrouter",
@@ -1046,9 +1050,13 @@ local plugins = {
 						openrouter = function()
 							return require("codecompanion.adapters").extend("openai_compatible", {
 								env = {
-									url = "https://openrouter.ai/api",
-									api_key = "OPENROUTER_API_KEY",
+									url = "https://api.siliconflow.cn",
+									api_key = "SILICONFLOW_API_KEY",
 									chat_url = "/v1/chat/completions",
+
+									-- url = "https://openrouter.ai/api",
+									-- api_key = "OPENROUTER_API_KEY",
+									-- chat_url = "/v1/chat/completions",
 								},
 								schema = {
 									model = {
@@ -1841,7 +1849,8 @@ local plugins = {
 		"folke/flash.nvim", -- 闪电移动跳转
 		event = "VeryLazy",
 		---@type Flash.Config
-		opts = { labels = "asdfghjklqwertyuiopzxcvbnm123456789" },
+		-- opts = { labels = "asdfghjklqwertyuiopzxcvbnm123456789" },
+		opts = {},
         -- stylua: ignore
         keys = {
             { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
@@ -1953,7 +1962,7 @@ local plugins = {
 		dependencies = {
 			"neovim/nvim-lspconfig",
 			"mfussenegger/nvim-dap",
-			"mfussenegger/nvim-dap-python", --optional
+			-- "mfussenegger/nvim-dap-python", --optional
 			{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 		},
 		lazy = false,
@@ -2116,6 +2125,7 @@ local plugins = {
 		event = "VimEnter", -- Sets the loading event to 'VimEnter'
 		opts = {
 			delay = 0,
+			sort = { "desc" },
 			icons = {
 				-- set icon mappings to true if you have a Nerd Font
 				mappings = vim.g.have_nerd_font,
@@ -2151,11 +2161,17 @@ local plugins = {
 					F11 = "<F11>",
 					F12 = "<F12>",
 				},
+				-- 自定义关键词图标
+				rules = {
+					{ pattern = "diag", icon = "󱖫 ", color = "green" },
+					{ pattern = "doc", icon = " ", color = "orange" },
+					{ pattern = "misc", icon = " ", color = "green" },
+				},
 			},
 
 			-- Document existing key chains
 			spec = {
-				{ "<leader>a", group = "avante" },
+				{ "<leader>a", group = "[a]vante" },
 				{ "<leader>b", group = "[b]uffer" },
 				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
 				{ "<leader>d", group = "[d]ebug" },
@@ -2166,7 +2182,7 @@ local plugins = {
 				{ "<leader>v", group = "[v]env" },
 				{ "<leader>j", group = "[j]upyter" },
 				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
-				{ "<leader>p", group = "[p]lugin", mode = { "n", "v" } },
+				{ "<leader>m", group = "[m]isc", mode = { "n", "v" } },
 			},
 		},
 	},
@@ -2185,12 +2201,12 @@ local plugins = {
 			local pantran = require("pantran")
 			pantran.setup({ default_engine = "google" })
 
-			local opts = { noremap = true, silent = true, expr = true }
-			vim.keymap.set("n", "<Leader>tr", pantran.motion_translate, opts)
-			vim.keymap.set("n", "<leader>trr", function()
+			local opts = { noremap = true, silent = true, expr = true, desc = "translate" }
+			-- vim.keymap.set("n", "<Leader>mt", pantran.motion_translate, opts)
+			vim.keymap.set("n", "<leader>mt", function()
 				return pantran.motion_translate() .. "_"
 			end, opts)
-			vim.keymap.set("x", "<leader>tr", pantran.motion_translate, opts)
+			vim.keymap.set("x", "<leader>mt", pantran.motion_translate, opts)
 		end,
 	},
 	-- {  --翻译软件，依赖于trans命令（translate-shell）
@@ -2395,29 +2411,11 @@ local plugins = {
 		},
 	},
 	-- 颜色主题，部分插件关闭注释斜体在options.lua中设置
-	{
-		"folke/tokyonight.nvim",
-		lazy = true,
-		opts = {
-			styles = {
-				comments = { italic = false },
-			},
-		},
-	},
-	{ "HoNamDuong/hybrid.nvim", lazy = true, opts = {
-		italic = { comments = false },
-	} },
+	{ "folke/tokyonight.nvim", lazy = true, opts = { styles = { comments = { italic = false } } } },
+	{ "HoNamDuong/hybrid.nvim", lazy = true, opts = { italic = { comments = false } } },
 	-- 'navarasu/onedark.nvim',
 	{ "olimorris/onedarkpro.nvim", lazy = true },
-	{
-		"rebelot/kanagawa.nvim",
-		lazy = true,
-		opts = {
-			commentStyle = {
-				italic = false,
-			},
-		},
-	},
+	{ "rebelot/kanagawa.nvim", lazy = true, opts = { commentStyle = { italic = false } } },
 	{ "sainnhe/sonokai", lazy = true },
 	-- {"ellisonleao/gruvbox.nvim", priority = 1000 , config = true, opts = ..., lazy = true},
 	{ "sainnhe/gruvbox-material", lazy = true },
@@ -2443,13 +2441,13 @@ local plugins = {
 	{ "Mofiqul/dracula.nvim", lazy = true },
 	{ "glepnir/zephyr-nvim", lazy = true },
 	{ "JoosepAlviste/palenightfall.nvim", lazy = true },
+	{ "savq/melange-nvim", lazy = true },
+	{ "uloco/bluloco.nvim", lazy = false, dependencies = { "rktjmp/lush.nvim" } },
 	{
 		"rose-pine/neovim",
 		lazy = true,
 		config = function()
-			require("rose-pine").setup({
-				styles = { italic = false },
-			})
+			require("rose-pine").setup({ styles = { italic = false } })
 		end,
 	},
 	-- { "scottmckendry/cyberdream.nvim", lazy = true },
