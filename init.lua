@@ -997,6 +997,7 @@ local plugins = {
 			local available_models = {
 				-- 硅基流动上模型
 				"deepseek-ai/DeepSeek-V3.2-Exp",
+				"Qwen/Qwen3-Coder-30B-A3B-Instruct",
 
 				-- openrouter上模型
 				-- "deepseek/deepseek-chat-v3.1:free",
@@ -1029,7 +1030,7 @@ local plugins = {
 				-- tools = { enabled = false },
 				strategies = {
 					chat = {
-						adapter = "openrouter",
+						adapter = "siliconflow",
 						-- keymaps = {
 						-- 	submit = {
 						-- 		modes = { n = "<CR>" },
@@ -1042,7 +1043,7 @@ local plugins = {
 						-- },
 					},
 					inline = {
-						adapter = "openrouter",
+						adapter = "siliconflow",
 					},
 				},
 				adapters = {
@@ -1050,13 +1051,23 @@ local plugins = {
 						openrouter = function()
 							return require("codecompanion.adapters").extend("openai_compatible", {
 								env = {
+									url = "https://openrouter.ai/api",
+									api_key = "OPENROUTER_API_KEY",
+									chat_url = "/v1/chat/completions",
+								},
+								schema = {
+									model = {
+										default = current_model,
+									},
+								},
+							})
+						end,
+						siliconflow = function()
+							return require("codecompanion.adapters").extend("openai_compatible", {
+								env = {
 									url = "https://api.siliconflow.cn",
 									api_key = "SILICONFLOW_API_KEY",
 									chat_url = "/v1/chat/completions",
-
-									-- url = "https://openrouter.ai/api",
-									-- api_key = "OPENROUTER_API_KEY",
-									-- chat_url = "/v1/chat/completions",
 								},
 								schema = {
 									model = {
@@ -1113,42 +1124,15 @@ local plugins = {
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
 
-			-- 右下角显示请求状态https://www.panziye.com/tool/14971.html#respond
-			local fidget = require("fidget")
-			local handler
-			if fidget then
-				-- Attach:
-				vim.api.nvim_create_autocmd({ "User" }, {
-					pattern = "CodeCompanionRequest*",
-					group = vim.api.nvim_create_augroup("CodeCompanionHooks", {}),
-					callback = function(request)
-						if request.match == "CodeCompanionRequestStarted" then
-							if handler then
-								handler.message = "Abort."
-								handler:cancel()
-								handler = nil
-							end
-							handler = fidget.progress.handle.create({
-								title = "",
-								message = "Thinking...",
-								lsp_client = { name = "CodeCompanion" },
-							})
-						elseif request.match == "CodeCompanionRequestFinished" then
-							if handler then
-								handler.message = "Done."
-								handler:finish()
-								handler = nil
-							end
-						end
-					end,
-				})
-			end
+			-- 进度提醒
+			require("plug.fidget-spinner"):init()
 		end,
 
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
 			"ravitemer/codecompanion-history.nvim",
+			"j-hui/fidget.nvim",
 		},
 	},
 	{
@@ -2022,8 +2006,8 @@ local plugins = {
 		lazy = false,
 		keys = {
 			-- Will use Telescope if installed or a vim.ui.select picker otherwise
-			{ "<leader>ws", "<cmd>AutoSession search<CR>", desc = "session: [s]earch" },
-			{ "<leader>wS", "<cmd>AutoSession save<CR>", desc = "session: [S]ave" },
+			{ "<leader>wo", "<cmd>AutoSession search<CR>", desc = "session: [o]pen" },
+			{ "<leader>ws", "<cmd>AutoSession save<CR>", desc = "session: [s]ave" },
 			{ "<leader>wt", "<cmd>AutoSession toggle<CR>", desc = "session: [t]oggle" },
 		},
 		---enables autocomplete for opts

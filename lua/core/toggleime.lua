@@ -36,5 +36,6 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave" }, {
 vim.api.nvim_create_autocmd({ "CmdlineEnter", "CmdlineLeave" }, {
 	group = ime_group,
 	pattern = { ":", "/", "?" },
+	-- pattern = "[/\\?]",
 	callback = set_ime,
 })
