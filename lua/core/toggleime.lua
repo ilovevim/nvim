@@ -1,4 +1,4 @@
--- 本文件只针对neovide生效
+-- 非neovide环境下，直接返回
 if not vim.g.neovide then
 	return
 end
@@ -6,7 +6,7 @@ end
 -- 前置重新刷新，解决偶尔有迟钝反应现象
 vim.g.neovide_no_idle = true
 
--- 启动时关闭输入法，以便于输入英文命令
+-- 启动时关闭输入法，仅可输入英文
 vim.g.neovide_input_ime = false
 
 -- 切换全屏，直接let设置在noice插件下浮窗会出现频闪
