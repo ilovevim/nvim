@@ -113,6 +113,9 @@ vim.o.sessionoptions = "buffers,curdir,tabpages,winsize,winpos,terminal,localopt
 -- 字符集设置，可尝试重新加载文件:e ++enc=gbk，GB18030是GBK的超集
 vim.o.fileencodings = "ucs-bom,utf-8,gb18030,utf-16le,big5,euc-jp,euc-kr,latin1"
 
+-- 设置PATH环境变量（比如Git下sed命令，被Spectre插件用到）
+vim.env.PATH = "c:/Program Files/Git/usr/bin" .. ";" .. vim.env.PATH
+
 --vim插件相关全局变量设置
 -- cmp-spell插件需要打开spell
 -- vim.opt.spell = true
