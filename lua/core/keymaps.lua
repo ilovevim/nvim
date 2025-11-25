@@ -139,7 +139,9 @@ vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval(nil, {ente
 -- 输入自定义表达式求值
 keymap.set("n", "<a-l>", function()
 	vim.ui.input({ prompt = "Eval expr:" }, function(expr)
-		require("dapui").eval(expr:gsub("\r", "\n"), { enter = true })
+		if expr and expr ~= "" then
+			require("dapui").eval(expr:gsub("\r", "\n"), { enter = true })
+		end
 	end)
 end, { desc = "eval custom expr" })
 
