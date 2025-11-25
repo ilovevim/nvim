@@ -1001,40 +1001,14 @@ local plugins = {
 	-- },
 	{
 		"olimorris/codecompanion.nvim",
+		lazy = true,
+		keys = {
+			{ "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "ai: [c]hat" },
+		},
 		config = function()
-			local available_models = {
-				-- 硅基流动上模型
-				"deepseek-ai/DeepSeek-V3.2-Exp",
-				"Qwen/Qwen3-Coder-30B-A3B-Instruct",
-
-				-- openrouter上模型
-				-- "deepseek/deepseek-chat-v3.1:free",
-				-- "microsoft/mai-ds-r1:free",
-				-- "tngtech/deepseek-r1t2-chimera:free",
-				-- "qwen/qwen3-coder:free",
-				-- "moonshotai/kimi-dev-72b:free",
-				-- "z-ai/glm-4.5-air:free",
-
-				-- "deepseek/deepseek-r1-0528:free",
-				-- "google/gemini-2.0-flash-exp:free",
-				-- "openai/gpt-oss-20b:free",
-				-- "x-ai/grok-4-fast:free",
-			}
-			local current_model = available_models[1]
-
-			local function select_model()
-				vim.ui.select(available_models, {
-					prompt = "Select Model:",
-				}, function(choice)
-					if choice then
-						current_model = choice
-						vim.notify("Selected model: " .. current_model)
-					end
-				end)
-			end
-
+			--https://github.com/olimorris/codecompanion.nvim/issues/2270
 			require("codecompanion").setup({
-				opts = { language = "Chinese" },
+				opts = { language = "Chinese", log_level = "INFO" },
 				-- tools = { enabled = false },
 				strategies = {
 					chat = {
@@ -1062,10 +1036,23 @@ local plugins = {
 									url = "https://openrouter.ai/api",
 									api_key = "OPENROUTER_API_KEY",
 									chat_url = "/v1/chat/completions",
+									-- models_endpoint = "/v1/models",
 								},
 								schema = {
 									model = {
-										default = current_model,
+										default = "x-ai/grok-4.1-fast:free",
+										choices = {
+											-- "deepseek/deepseek-chat-v3.1:free",
+											-- "microsoft/mai-ds-r1:free",
+											-- "tngtech/deepseek-r1t2-chimera:free",
+											-- "qwen/qwen3-coder:free",
+											-- "moonshotai/kimi-dev-72b:free",
+											-- "z-ai/glm-4.5-air:free",
+											"x-ai/grok-4.1-fast:free",
+											"deepseek/deepseek-r1-0528:free",
+											-- "google/gemini-2.0-flash-exp:free",
+											-- "openai/gpt-oss-20b:free",
+										},
 									},
 								},
 							})
@@ -1079,7 +1066,11 @@ local plugins = {
 								},
 								schema = {
 									model = {
-										default = current_model,
+										default = "deepseek-ai/DeepSeek-V3.2-Exp",
+										choices = {
+											"deepseek-ai/DeepSeek-V3.2-Exp",
+											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
+										},
 									},
 								},
 							})
@@ -1108,7 +1099,7 @@ local plugins = {
 							-- Keymap to open history from chat buffer (default: gh)
 							keymap = "gh",
 							-- Keymap to save the current chat manually (when auto_save is disabled)
-							save_chat_keymap = "sc",
+							-- save_chat_keymap = "sc",
 						},
 					},
 				},
@@ -1128,7 +1119,7 @@ local plugins = {
 				{ noremap = true, silent = true, desc = "ai: [c]hat" }
 			)
 			vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>cm", select_model, { desc = "ai: [m]odel" })
+			-- vim.keymap.set("n", "<leader>cm", select_model, { desc = "ai: [m]odel" })
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
 
