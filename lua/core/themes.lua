@@ -8,17 +8,15 @@ math.randomseed(os.time())
 -- "SF_Mono:h12" -- 字体加载报错
 
 -- 以下字体共有问题：Aerial大纲插件中类、函数图标显示异常
+-- 可通过fallback到Symbols_Nerd_Font纯图标字体来解决
 -- "Monoisome:h12",
 -- "MonacoLigaturized:h12",
 -- "Sarasa_Nerd:h12", -- 同名：等距更纱黑体_SC:h12
 -- "Hasklig:h12" -- 从SourceCodePro衍生，增加连字符
--- "Noto_Sans_Mono_CJK_SC,等距更纱黑体_SC:h11",
--- "Monoid_Nerd_Font_Mono:h11", -- 老牌编程字体（英文大写比小写大太多）
--- "YaHei_Consolas_Hybrid:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
 -- "LXGW_Bright_Code:h13", -- Monospace+霞鹜文楷等宽合成字体
 local fonts = {
 	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- IBM出品
-	"CasCadia_Code_NF,霞鹜文楷等宽:h12",
+	"CasCadia_Code_NF,Source_Han_Sans_SC:h12",
 	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h13",
 	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
 	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h13",
@@ -34,12 +32,16 @@ local fonts = {
 	"Maple_Mono_Normal_NF_CN:h12",
 	"MesloLGMDZ_Nerd_Font_Mono,等距更纱黑体_SC:h12", -- 苹果专用开发者字体（Line Gap, Medium, Dotted zero）
 	"Monaspace_Argon_NF,霞鹜文楷等宽:h12",
+	"Monoid_Nerd_Font_Mono,微软雅黑:h11", -- 老牌编程字体（英文大写比小写大太多）
 	"Mononoki_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"NotoSansM_NFM,微软雅黑:h12",
+	"Noto_Sans_Mono_CJK_SC,Symbols_Nerd_Font:h12",
 	"RecMonoLinear_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h12",
 	"SauceCodePro_NFM,等距更纱黑体_SC:h12", -- 英文字体显小，显得中文字体过大
-	"UbuntuMono_Nerd_Font_Mono,等线:h13", -- Ubuntu系统专用字体，英文字体太小
+	"UbuntuMono_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- Ubuntu系统专用字体，英文字体太小
 	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
+	"YaHei_Consolas_Hybrid,Symbols_Nerd_Font:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
 }
 
 -- 自选颜色得到主题
