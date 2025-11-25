@@ -2,7 +2,6 @@
 -- 20241101 luocm 清除nvim-surround，用mini.surround代替
 -- 20241101 luocm telescope中增加delete_buffer按键映射
 -- 20241111 luocm python lsp：pyright、pylyzer不支持stub，使用jedi但最终换回pyright+ruff
-
 -- 前缀键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -36,7 +35,8 @@ local plugins = {
 	-- { "akinsho/bufferline.nvim", version = "*", dependencies = "nvim-tree/nvim-web-devicons" },
 	{ -- bufferline、lualine可mini相关套件替换
 		"nvim-lualine/lualine.nvim",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = { "nvim-tree/nvim-web-devicons", "SmiteshP/nvim-navic" },
 		config = function()
 			require("lualine").setup({
@@ -718,7 +718,8 @@ local plugins = {
 	-- },
 	{ -- Autocompletion
 		"saghen/blink.cmp",
-		event = "VimEnter",
+		-- event = "VimEnter",
+		event = { "BufReadPre", "BufNewFile" },
 		version = "1.*",
 		dependencies = {
 			-- "Kaiser-Yang/blink-cmp-avante",
@@ -754,7 +755,8 @@ local plugins = {
 			"folke/lazydev.nvim",
 			{ -- AI辅助
 				"luozhiya/fittencode.nvim",
-				event = "VeryLazy",
+				-- event = "VeryLazy",
+				event = { "BufReadPre", "BufNewFile" },
 				opts = {
 					use_default_keymaps = false,
 					-- Default keymaps
@@ -854,8 +856,8 @@ local plugins = {
 			},
 
 			sources = {
-				-- "avante"
-				default = { "lsp", "path", "snippets", "buffer", "lazydev", "codecompanion" },
+				-- "avante", "codecompanion"
+				default = { "lsp", "path", "snippets", "buffer", "lazydev" },
 				-- per_filetype = {
 				-- 	codecompanion = { "codecompanion" },
 				-- },
@@ -1136,6 +1138,7 @@ local plugins = {
 	},
 	{
 		"ravitemer/mcphub.nvim",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 		},
@@ -1323,6 +1326,7 @@ local plugins = {
 	-- },
 	{ -- dbee数据库UI终端
 		"kndndrj/nvim-dbee",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"MunifTanjim/nui.nvim",
 		},
@@ -1434,12 +1438,13 @@ local plugins = {
 	},
 	{ -- 代码导航面包屑
 		"SmiteshP/nvim-navic",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			-- lsp = { auto_attach = true },
 			depth_limit = 2,
 		},
-		dependencies = { "neovim/nvim-lspconfig" },
+		-- dependencies = { "neovim/nvim-lspconfig" },
 	},
 	-- { -- barbecue代码导航面包屑，改为navic+lualine显示到状态栏中
 	-- 	"utilyre/barbecue.nvim",
@@ -1459,7 +1464,8 @@ local plugins = {
 	-- "liuchengxu/vista.vim", -- 代码大纲展示
 	{ -- aerial代码大纲展示（轻量级，比vista更轻便高效、清单更完整）
 		"stevearc/aerial.nvim",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {},
 		-- Optional dependencies
 		config = function()
@@ -1643,6 +1649,7 @@ local plugins = {
 	},
 	{ -- gitsigns：Adds git related signs to the gutter, as well as utilities for managing changes
 		"lewis6991/gitsigns.nvim", -- 左侧git提示
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			signs = {
 				add = { text = "+" },
@@ -1655,7 +1662,12 @@ local plugins = {
 	},
 	{ -- git提交
 		"NeogitOrg/neogit",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		lazy = true,
+		-- cmd = { "Neogit" },
+		keys = {
+			{ "<leader>wn", "<cmd>Neogit<cr>", desc = "workspace: [n]eogit" },
+		},
 		dependencies = {
 			"nvim-lua/plenary.nvim", -- required
 			"sindrets/diffview.nvim", -- optional - Diff integration
@@ -1669,7 +1681,12 @@ local plugins = {
 	},
 	{ -- telescope, Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		lazy = true,
+		keys = {
+			--通过打开会话窗口，实现telescope延迟加载的效果
+			{ "<leader>wo", "<cmd>AutoSession search<CR>", desc = "session: [o]pen" },
+		},
 		-- branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
@@ -1916,8 +1933,11 @@ local plugins = {
 	-- 		require("fold-preview").setup({ auto = 400 })
 	-- 	end,
 	-- },
-	{ -- FIX 测试框架，暂无法正常使用
+	{ -- 测试框架暂不可用，持续报错：module 'neotest' not found（详见neotest.log）
 		"nvim-neotest/neotest",
+		-- commit = "52fca6717ef972113ddd6ca223e30ad0abb2800c",
+		lazy = true,
+		cmd = { "Neotest" },
 		dependencies = {
 			"nvim-neotest/nvim-nio",
 			"nvim-lua/plenary.nvim",
@@ -2055,7 +2075,7 @@ local plugins = {
 			-- "mfussenegger/nvim-dap-python", --optional
 			{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 		},
-		lazy = false,
+		lazy = true,
 		-- branch = "regexp", -- This is the regexp branch, use this for the new version
 		config = function()
 			require("venv-selector").setup({
@@ -2158,7 +2178,9 @@ local plugins = {
 	},
 	{ -- 跟jupyter交互
 		"SUSTech-data/neopyter",
-		event = "VeryLazy",
+		-- event = "VeryLazy",
+		lazy = true,
+		cmd = { "Neopyter" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter", -- neopyter don't depend on `nvim-treesitter`, but does depend on treesitter parser of python
@@ -2411,6 +2433,7 @@ local plugins = {
 	-- },
 	{ -- buffer管理器
 		"romgrk/barbar.nvim",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
 			"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
@@ -2443,6 +2466,7 @@ local plugins = {
 	-- },
 	{ -- 自动添加结尾标签
 		"windwp/nvim-ts-autotag",
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {},
 	},
 	-- { -- 浮窗解释regex正则表达式
