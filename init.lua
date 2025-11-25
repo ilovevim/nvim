@@ -1923,6 +1923,99 @@ local plugins = {
 			})
 		end,
 	},
+	{ -- 测试框架
+		"quolpr/quicktest.nvim",
+		config = function()
+			require("quicktest").setup({
+				-- Choose your adapter, here all supported adapters are listed
+				adapters = {
+					-- require("quicktest.adapters.golang")({}),
+					-- require("quicktest.adapters.vitest")({}),
+					-- require("quicktest.adapters.playwright")({}),
+					require("quicktest.adapters.pytest")({
+						cwd = function(bufnr, current)
+							return vim.fn.getcwd()
+						end,
+
+						env = function(bufnr, current)
+							-- 当前工作路径加入PYTHONPATH
+							local new_env = vim.deepcopy(current) or {}
+							new_env.PYTHONPATH = vim.fn.getcwd() .. ";" .. (os.getenv("PYTHONPATH") or "")
+							return new_env
+						end,
+					}),
+					-- require("quicktest.adapters.elixir"),
+					-- require("quicktest.adapters.criterion"),
+					-- require("quicktest.adapters.dart"),
+					-- require("quicktest.adapters.rspec"),
+				},
+				-- split or popup mode, when argument not specified
+				default_win_mode = "split",
+				use_builtin_colorizer = true,
+			})
+		end,
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"MunifTanjim/nui.nvim",
+		},
+		keys = {
+			{
+				"<leader>tl",
+				function()
+					local qt = require("quicktest")
+					-- current_win_mode return currently opened panel, split or popup
+					qt.run_line()
+					-- You can force open split or popup like this:
+					-- qt.run_line('split')
+					-- qt.run_line('popup')
+				end,
+				desc = "test: [l]ine",
+			},
+			{
+				"<leader>tf",
+				function()
+					require("quicktest").run_file()
+				end,
+				desc = "test: [f]ile",
+			},
+			{
+				"<leader>td",
+				function()
+					require("quicktest").run_dir()
+				end,
+				desc = "test: [d]ir",
+			},
+			{
+				"<leader>ta",
+				function()
+					require("quicktest").run_all()
+				end,
+				desc = "test: [a]ll",
+			},
+			{
+				"<leader>tp",
+				function()
+					require("quicktest").run_previous()
+				end,
+				desc = "test: [p]revious",
+			},
+			{
+				"<leader>tc",
+				function()
+					require("quicktest").cancel_current_run()
+				end,
+				desc = "test: [c]ancel",
+			},
+			{
+				"<leader>tt",
+				function()
+					require("quicktest").toggle_win("split")
+				end,
+				desc = "test: [t]oggle",
+			},
+		},
+	},
+
 	"tpope/vim-repeat", -- 增强.重复操作
 	"ethanholz/nvim-lastplace", -- 回到文件上次编辑位置
 	"nvim-pack/nvim-spectre", -- 查找替换插件
@@ -2167,6 +2260,7 @@ local plugins = {
 				{ "<leader>j", group = "[j]upyter" },
 				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
 				{ "<leader>m", group = "[m]isc", mode = { "n", "v" } },
+				{ "<leader>t", group = "[t]est", mode = { "n", "v" } },
 			},
 		},
 	},
