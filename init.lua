@@ -271,6 +271,14 @@ local plugins = {
 	-- 	"mizlan/iswap.nvim",
 	-- 	event = "VeryLazy",
 	-- },
+
+	{
+		"mason-org/mason.nvim",
+		lazy = true,
+		keys = {
+			{ "<leader>mm", "<cmd>Mason<cr>", desc = "misc: [m]ason" },
+		},
+	},
 	{ -- Main LSP Configuration
 		"neovim/nvim-lspconfig",
 		-- event = "VeryLazy",

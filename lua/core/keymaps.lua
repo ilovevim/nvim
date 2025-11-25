@@ -64,8 +64,8 @@ keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer: [s]ave" })
 keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer: [s]ave" })
 
 -- Lazy Sync同步插件
-keymap.set("n", "<leader>ml", "<cmd>Lazy sync<cr>", { desc = "misc: [l]azy" })
-keymap.set("n", "<leader>mm", "<cmd>Mason<cr>", { desc = "misc: [m]ason" })
+keymap.set("n", "<leader>ml", "<cmd>Lazy<cr>", { desc = "misc: [l]azy" })
+-- keymap.set("n", "<leader>mm", "<cmd>Mason<cr>", { desc = "misc: [m]ason" })
 
 -- ---------- 插件 ---------- ---
 -- nvim-tree
