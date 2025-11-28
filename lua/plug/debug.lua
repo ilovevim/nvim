@@ -202,6 +202,12 @@ return { -- NOTE: Yes, you can install new plugins here!
 				config.env = config.env or {}
 				-- 设置 PYTHONPATH 为当前工作目录
 				config.env.PYTHONPATH = vim.fn.getcwd()
+
+				-- 该配置项与名为file的配置项功能重复，故指定为启动python项目
+				if config.name == "Python: Launch file" then
+					config.program = "main.py"
+					vim.notify("dap-python: launching " .. config.program .. "...")
+				end
 			end
 			return config
 		end
