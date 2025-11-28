@@ -134,16 +134,61 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 ----------------------------------------
 -- dapui插件（表达式求值）
 ----------------------------------------
-vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval(nil, {enter=true})<CR>")
+--保存最近表达式
+local last_eval_expr = ""
 
--- 输入自定义表达式求值
-keymap.set("n", "<a-l>", function()
-	vim.ui.input({ prompt = "Eval expr:" }, function(expr)
-		if expr and expr ~= "" then
-			require("dapui").eval(expr:gsub("\r", "\n"), { enter = true })
+-- 执行表达式（空字符串则不执行）
+local function dap_eval_expr(expr)
+	if expr and expr ~= "" then
+		-- 规范并确保结尾有一个换行符，以便dap结果可另起一行显示
+		local normalized = expr:gsub("\r", "\n")
+		if normalized.sub(-1, 1) ~= "\n" then
+			normalized = normalized .. "\n"
 		end
-	end)
-end, { desc = "eval custom expr" })
+		require("dapui").eval(normalized, { enter = true })
+		last_eval_expr = expr
+	end
+end
+
+-- 执行表达式入口（是否弹出输入框）
+local function dap_eval(show_input)
+	local expr = nil
+	local mode = vim.fn.mode()
+
+	-- 根据模式获取表达式
+	if mode == "n" then
+		-- 普通模式：使用当前单词
+		expr = vim.fn.expand("<cword>")
+	elseif mode == "v" or mode == "V" or mode == "\22" then
+		-- 可视模式：使用选中的文本（避免污染寄存器）
+		local reg_save = vim.fn.getreg("+")
+		vim.cmd('normal! "+y')
+		expr = vim.fn.getreg("+")
+		vim.fn.setreg("+", reg_save)
+	end
+
+	if show_input then
+		vim.ui.input({ prompt = "Eval expr", default = expr }, dap_eval_expr)
+	else
+		dap_eval_expr(expr)
+	end
+end
+
+-- vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval(nil, {enter=true})<CR>")
+-- 执行表达式（取当前单词或选中的文本）
+vim.keymap.set({ "n", "v" }, "<a-k>", function()
+	dap_eval(false)
+end)
+
+-- 执行表达式（弹出输入框）
+vim.keymap.set({ "n", "v" }, "<a-K>", function()
+	dap_eval(true)
+end)
+
+-- 执行上次表达式
+keymap.set("n", "<a-l>", function()
+	dap_eval_expr(last_eval_expr)
+end)
 
 ----------------------------------------
 -- inc-rename插件预览式更名，替换vim.lsp.buf.rename
