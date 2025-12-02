@@ -1,6 +1,3 @@
--- 设置随机数种子（Neovim启动时执行一次）
-math.randomseed(os.time())
-
 -- 设置只有neovide才能支持的NerdFont（连字符等），在themes.lua中切换
 -- "SpaceMono_Nerd_Font:h12", -- 行间距较大
 -- "AnonymicePro_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
@@ -16,7 +13,7 @@ math.randomseed(os.time())
 -- "LXGW_Bright_Code:h13", -- Monospace+霞鹜文楷等宽合成字体
 local fonts = {
 	"BlexMono_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- IBM出品
-	"CasCadia_Code_NF,Source_Han_Sans_SC:h12",
+	"CaskaydiaCove_NFM,Source_Han_Sans_SC:h12",
 	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h13",
 	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
 	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h13",
@@ -97,10 +94,6 @@ local function shuffle_table(t)
 	return t
 end
 
--- 打乱表格顺序，每次启动后随机切换效果
-shuffle_table(fonts)
-shuffle_table(themes)
-
 local M = {}
 
 -- 循环切换字体
@@ -119,6 +112,7 @@ end
 
 -- 增减字号大小
 M.change_font_size = function(step)
+	step = step or 1 -- 设置默认值
 	local font_str = fonts[font_idx]
 	local size_str = font_str:match("h(%d+)$")
 	if not size_str then
@@ -138,50 +132,55 @@ M.change_font_size = function(step)
 end
 
 -- 显示主题和字体，切换字体代码中redraw不起作用
-M.show_theme = function(flag)
-	flag = flag or 0
-	local info = ""
-
-	if flag == 0 or flag == 1 then
-		info = info .. " font: " .. vim.o.guifont .. "\n"
-	end
-	if flag == 0 or flag == 2 then
-		info = info .. "theme: " .. vim.g.colors_name .. "\n"
-	end
-
-	if info ~= "" then
-		-- 剔除字体名称中的_Nerd类似后缀
-		info = string.gsub(info, "_[%w]+", "")
-		-- 删除最后一个多余的换行符
-		info = string.sub(info, 1, #info - 1)
-		vim.notify(info)
-	end
+M.show_style = function()
+	-- 剔除字体名称中的_Nerd类似后缀
+	local info = vim.g.colors_name .. " | " .. string.gsub(vim.o.guifont, "_[%w]+", "")
+	vim.notify(info)
 end
 
 -- 切换字体及主题，并显示相关信息
-M.switch_ui = function(flag)
-	flag = flag or 0
-	if flag == 0 or flag == 1 then
-		M.switch_font()
+M.switch_style = function(flag)
+	local actions = {
+		[1] = M.switch_theme,
+		[2] = M.switch_font,
+		[3] = M.change_font_size,
+		[4] = function()
+			M.change_font_size(-1)
+		end,
+	}
+	if flag >= 1 and flag <= 4 then
+		actions[flag]()
+		M.show_style()
 	end
-	if flag == 0 or flag == 2 then
-		M.switch_theme()
-	end
-
-	if flag == 3 then
-		M.change_font_size(1)
-	end
-
-	if flag == 4 then
-		M.change_font_size(-1)
-	end
-
-	M.show_theme(flag)
 end
 
+M.set_style = function()
+	local options = {
+		{ desc = "switch theme", value = 1 },
+		{ desc = "switch font", value = 2 },
+		{ desc = "increase font size", value = 3 },
+		{ desc = "decrease font size", value = 4 },
+	}
+
+	vim.ui.select(options, {
+		prompt = vim.g.colors_name .. " | " .. string.gsub(vim.o.guifont, "_[%w]+", ""),
+		format_item = function(item)
+			return item.desc
+		end,
+	}, function(choice)
+		if choice then
+			M.switch_style(choice.value)
+		end
+	end)
+end
+
+-- 启动时打乱表格顺序，随机切换效果
+math.randomseed(os.time())
+shuffle_table(fonts)
+shuffle_table(themes)
+
 -- 启动时随机选中主题和字体
-M.switch_font()
 M.switch_theme()
--- M.switch_ui(0)
+M.switch_font()
 
 return M

@@ -89,12 +89,8 @@ keymap.set(
 )
 
 -- 循环切换颜色主题、字体大小
-keymap.set("n", "<F12>", "<Cmd>lua require('core.themes').show_theme(0)<cr>", { desc = "show font and theme" })
-keymap.set("n", "<S-F12>", "<Cmd>lua require('core.themes').switch_ui(0)<cr>", { desc = "switch font and theme" })
-keymap.set("n", "<C-F12>", "<Cmd>lua require('core.themes').switch_ui(1)<cr>", { desc = "switch font" })
-keymap.set("n", "<A-F12>", "<Cmd>lua require('core.themes').switch_ui(2)<cr>", { desc = "switch theme" })
-keymap.set("n", "<C-F11>", "<Cmd>lua require('core.themes').switch_ui(3)<cr>", { desc = "increase font size" })
-keymap.set("n", "<A-F11>", "<Cmd>lua require('core.themes').switch_ui(4)<cr>", { desc = "decrease font size" })
+keymap.set("n", "<A-F>", require("core.themes").show_style, { desc = "show theme and font" })
+keymap.set("n", "<A-f>", require("core.themes").set_style, { desc = "set theme and font" })
 
 -- neovim-session-manager
 -- keymap.set("n", "<leader>wo", "<cmd>SessionManager load_session<CR>", { desc = "[o]pen session" })
