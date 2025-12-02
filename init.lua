@@ -859,7 +859,8 @@ local plugins = {
 				-- "avante", "codecompanion"
 				default = { "lsp", "path", "snippets", "buffer", "lazydev" },
 				-- per_filetype = {
-				-- 	codecompanion = { "codecompanion" },
+				-- codecompanion = { "codecompanion" },
+				-- sql = { "snippets", "dadbod", "buffer" },
 				-- },
 				providers = {
 					-- avante = {
@@ -869,6 +870,7 @@ local plugins = {
 					-- 		-- options for blink-cmp-avante
 					-- 	},
 					-- },
+					-- dadbod = { name = "Dadbod", module = "vim_dadbod_completion.blink" },
 					lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 5 },
 					fittencode = {
 						name = "fittencode",
@@ -1308,7 +1310,7 @@ local plugins = {
 	},
 	-- "nanotee/sqls.nvim", -- sql服务器（仅支持mysql少量数据库）
 	-- { -- 数据库访问终端DBUI
-	-- 	"kristijanhusak/vim-dadbod-ui",  -- 实测不好用
+	-- 	"kristijanhusak/vim-dadbod-ui", -- 实测不好用
 	-- 	dependencies = {
 	-- 		{ "tpope/vim-dadbod", lazy = true },
 	-- 		{ "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true }, -- Optional
