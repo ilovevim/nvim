@@ -85,7 +85,7 @@ vim.o.smartcase = true
 
 -- 外观
 vim.o.termguicolors = true
-vim.o.signcolumn = "yes"
+vim.o.signcolumn = "number"
 -- vim.cmd[[colorscheme tokyonight-moon]]
 vim.o.colorcolumn = "80,120"
 
