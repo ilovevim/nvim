@@ -2146,6 +2146,65 @@ local plugins = {
 			-- log_level = 'debug',
 			auto_restore = false,
 			auto_create = false,
+
+			-- 保存扩展数据（断点）
+			save_extra_data = function(_)
+				local ok, breakpoints = pcall(require, "dap.breakpoints")
+				if not ok or not breakpoints then
+					return
+				end
+
+				local bps = {}
+				local breakpoints_by_buf = breakpoints.get()
+
+				for buf, buf_bps in pairs(breakpoints_by_buf) do
+					bps[vim.api.nvim_buf_get_name(buf)] = buf_bps
+				end
+				if vim.tbl_isempty(bps) then
+					return
+				end
+				local extra_data = {
+					breakpoints = bps,
+				}
+				return vim.fn.json_encode(extra_data)
+			end,
+
+			-- 恢复扩展数据（断点）
+			restore_extra_data = function(_, extra_data)
+				local function get_buffer_number(fpath)
+					local bufnr = vim.fn.bufnr(fpath, true)
+					-- Load the file if it wasn't loaded by the session
+					if vim.fn.bufloaded(bufnr) == 0 then
+						vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
+					end
+					return bufnr
+				end
+
+				local json = vim.fn.json_decode(extra_data)
+				if json.breakpoints then
+					local ok, breakpoints = pcall(require, "dap.breakpoints")
+
+					if not ok or not breakpoints then
+						return
+					end
+
+					vim.notify("restoring breakpoints")
+					for buf_name, buf_bps in pairs(json.breakpoints) do
+						for _, bp in pairs(buf_bps) do
+							local line = bp.line
+							local opts = {
+								condition = bp.condition,
+								log_message = bp.logMessage,
+								hit_condition = bp.hitCondition,
+							}
+
+							-- vim.fn.bufnr()返回的bufnr，可能还未加载，导致断点被设置到第1行
+							-- 改用get_buffer_number()函数获取bufnr
+							breakpoints.set(opts, get_buffer_number(buf_name), line)
+						end
+					end
+				end
+			end,
 		},
 	},
 
