@@ -189,6 +189,16 @@ return { -- NOTE: Yes, you can install new plugins here!
 
 		-- Java adapter、configuration无需额外配置，jdtls+java-debug已经绑定自动处理了
 
+		-- vim.print(vim.inspect(dap.configurations.python))
+		-- 遍历python调试项目，并重命名构建出启动项目主程序的配置项，
+		-- 默认的Python: Launch file与file功能重复，故将其指定为启动python项目
+		for i, config in ipairs(dap.configurations.python) do
+			if config.name == "Python: Launch file" then
+				config.name = "project"
+				config.program = "main.py"
+			end
+		end
+
 		-- 当前项目根目录加入到系统环境变量PYTHONPATH，避免报错ModuleNotFoundError
 		dap.listeners.on_config["pythonpath_setup"] = function(config)
 			config = vim.deepcopy(config)
@@ -203,11 +213,14 @@ return { -- NOTE: Yes, you can install new plugins here!
 				-- 设置 PYTHONPATH 为当前工作目录
 				config.env.PYTHONPATH = vim.fn.getcwd()
 
+				-- 设置当前工作目录（auto-session恢复会话通常指向项目根目录）
+				config.cwd = vim.fn.getcwd
+
 				-- 该配置项与名为file的配置项功能重复，故指定为启动python项目
-				if config.name == "Python: Launch file" then
-					config.program = "main.py"
-					vim.notify("dap-python: launching " .. config.program .. "...")
-				end
+				-- if config.name == "project" then
+				-- 	config.program = "main.py"
+				-- 	vim.notify("dap-python: launching " .. config.program .. "...")
+				-- end
 			end
 			return config
 		end
