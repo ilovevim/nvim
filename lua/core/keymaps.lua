@@ -136,12 +136,9 @@ local last_eval_expr = ""
 -- 执行表达式（空字符串则不执行）
 local function dap_eval_expr(expr)
 	if expr and expr ~= "" then
-		-- 规范并确保结尾有一个换行符，以便dap结果可另起一行显示
-		local normalized = expr:gsub("\r", "\n")
-		if normalized.sub(-1, 1) ~= "\n" then
-			normalized = normalized .. "\n"
-		end
-		require("dapui").eval(normalized, { enter = true })
+		-- 换行符处理
+		expr = expr:gsub("\r", "\n")
+		require("dapui").eval(expr, { enter = true })
 		last_eval_expr = expr
 	end
 end
