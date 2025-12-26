@@ -43,8 +43,8 @@ end
 
 function M:create_progress_handle(request)
 	return progress.handle.create({
-		title = " Requesting assistance (" .. request.data.strategy .. ")",
-		message = "In progress...",
+		title = " " .. request.data.interaction .. " mode",
+		message = "Running...",
 		lsp_client = {
 			name = M:llm_role_title(request.data.adapter),
 		},
