@@ -206,6 +206,20 @@ keymap.set("n", "<leader>mf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [
 -- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
 
 ----------------------------------------
+-- Spectre替换插件
+----------------------------------------
+-- keymap.set("n", "<leader>ms", "<cmd>Spectre<cr>", { desc = "misc: [s]pectre" })
+-- keymap.set("n", "<leader>ms", '<cmd>lua require("spectre").toggle()<CR>', {
+-- 	desc = "misc: [s]pectre",
+-- })
+keymap.set("n", "<leader>ms", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', {
+	desc = "misc: [s]pectre",
+})
+keymap.set("v", "<leader>ms", '<esc><cmd>lua require("spectre").open_visual()<CR>', {
+	desc = "misc: [s]pectre",
+})
+
+----------------------------------------
 -- buffer管理
 ----------------------------------------
 -- keymap.set("n", "<A-l>", "<cmd>bnext<CR>")
