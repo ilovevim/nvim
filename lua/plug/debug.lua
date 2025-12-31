@@ -214,13 +214,13 @@ return { -- NOTE: Yes, you can install new plugins here!
 				config.env.PYTHONPATH = vim.fn.getcwd()
 
 				-- 设置当前工作目录（auto-session恢复会话通常指向项目根目录）
-				config.cwd = vim.fn.getcwd
+				config.cwd = vim.fn.getcwd()
 
 				-- 该配置项与名为file的配置项功能重复，故指定为启动python项目
-				-- if config.name == "project" then
-				-- 	config.program = "main.py"
-				-- 	vim.notify("dap-python: launching " .. config.program .. "...")
-				-- end
+				if config.name == "project" then
+					config.program = "main.py"
+					vim.notify("dap-python: launching " .. config.program .. "...")
+				end
 			end
 			return config
 		end
