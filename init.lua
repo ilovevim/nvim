@@ -2383,7 +2383,7 @@ local plugins = {
 	-- 		-- refer to the configuration section below
 	-- 	},
 	-- },
-	"voldikss/vim-translator", -- 国人写的翻译插件
+	-- "voldikss/vim-translator", -- 国人写的翻译插件
 	{ -- 弹窗翻译软件，暂时仅支持"yandex", "argos", "apertium", "google"且连不上或需要auth_key
 		"potamides/pantran.nvim",
 		config = function()
@@ -2641,6 +2641,7 @@ local plugins = {
 			require("rose-pine").setup({ styles = { italic = false } })
 		end,
 	},
+	{ "ilof2/posterpole.nvim", lazy = true },
 	-- { "scottmckendry/cyberdream.nvim", lazy = true },
 	-- { -- neosolarized
 	-- 	"svrana/neosolarized.nvim",

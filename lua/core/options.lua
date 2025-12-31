@@ -24,7 +24,7 @@ vim.o.smartindent = true
 vim.o.jumpoptions = "stack" -- 跳转历史用堆栈模式
 
 -- 不换行
--- vim.o.wrap = true
+vim.o.wrap = false
 
 -- 折叠相关配置
 vim.o.foldcolumn = "0" -- '0' is not bad

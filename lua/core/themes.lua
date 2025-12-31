@@ -1,8 +1,8 @@
+-- 若不确定字体名称，可执行set guifont=*查看全部可用的字体名称
 -- 设置只有neovide才能支持的NerdFont（连字符等），在themes.lua中切换
 -- "SpaceMono_Nerd_Font:h12", -- 行间距较大
 -- "AnonymicePro_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
 -- "Inconsolata_Nerd_Font_Mono,霞鹜文楷等宽:h12", -- 英文字体显小，中文字体对比过大
--- "SF_Mono:h12" -- 字体加载报错
 
 -- 以下字体共有问题：Aerial大纲插件中类、函数图标显示异常
 -- 可通过fallback到Symbols_Nerd_Font纯图标字体来解决
@@ -16,7 +16,8 @@ local fonts = {
 	"CaskaydiaCove_NFM,Source_Han_Sans_SC:h12",
 	"CodeNewRoman_Nerd_Font_Mono,霞鹜文楷等宽:h13",
 	"CommitMono_Nerd_Font,等距更纱黑体_SC:h12", -- 以Fira Code和JetBrains Mono为灵感制作nvi
-	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h13",
+	"DejaVuSansM_Nerd_Font_Mono,霞鹜文楷等宽:h12",
+	"EnvyCodeR_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"FantasqueSansM_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- 英文字体显小，中文字体对比过大
 	"FiraCode_Nerd_Font,等距更纱黑体_SC:h12",
 	"GeistMono_NFM,霞鹜文楷等宽:h12",
@@ -36,6 +37,7 @@ local fonts = {
 	"RecMonoLinear_Nerd_Font_Mono,霞鹜文楷等宽:h12",
 	"RobotoMono_Nerd_Font_Mono,等距更纱黑体_SC:h12",
 	"SauceCodePro_NFM,等距更纱黑体_SC:h12", -- 英文字体显小，显得中文字体过大
+	"SFMono_Nerd_Font,Symbols_Nerd_Font:h12",
 	"UbuntuMono_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- Ubuntu系统专用字体，英文字体太小
 	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
 	"YaHei_Consolas_Hybrid,Symbols_Nerd_Font:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
@@ -63,6 +65,7 @@ local themes = {
 	"onenord",
 	"palenightfall",
 	"PaperColor",
+	"posterpole",
 	"rose-pine",
 	"sonokai",
 	"tokyonight",
