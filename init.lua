@@ -971,7 +971,7 @@ local plugins = {
 	-- 		"nvim-lua/plenary.nvim",
 	-- 		"MunifTanjim/nui.nvim",
 	-- 		--- The below dependencies are optional,
-	-- 		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+	-- 		"nvim-tree/nvim-web-devicons", -- or nvim-mini/mini.icons
 	-- 		"nvim-telescope/telescope.nvim", -- for file_selector provider telescope
 	-- 		"zbirenbaum/copilot.lua", -- for providers='copilot'
 	-- 		-- "stevearc/dressing.nvim",
@@ -1489,7 +1489,7 @@ local plugins = {
 
 	{ -- Make sure to set this up properly if you have lazy=true
 		"MeanderingProgrammer/render-markdown.nvim",
-		-- dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.nvim" },
+		-- dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" },
 		opts = {
 			file_types = { "markdown", "Avante", "codecompanion" },
 		},
@@ -1535,7 +1535,7 @@ local plugins = {
 	-- 	opts = {},
 	-- },
 	{ -- mini插件Collection of various small independent plugins/modules
-		"echasnovski/mini.nvim",
+		"nvim-mini/mini.nvim",
 		event = "VimEnter",
 		config = function()
 			-- Better Around/Inside textobjects
@@ -1636,7 +1636,7 @@ local plugins = {
 			-- end
 
 			-- ... and there is more!
-			--  Check out: https://github.com/echasnovski/mini.nvim
+			--  Check out: https://github.com/nvim-mini/mini.nvim
 		end,
 	},
 	{ -- todo注释Highlight todo, notes, etc in comments
@@ -1677,7 +1677,7 @@ local plugins = {
 			-- Only one of these is needed.
 			"nvim-telescope/telescope.nvim", -- optional
 			-- "ibhagwan/fzf-lua",              -- optional
-			-- "echasnovski/mini.pick",         -- optional
+			-- "nvim-mini/mini.pick",         -- optional
 		},
 		config = true,
 	},
