@@ -2488,6 +2488,16 @@ local plugins = {
 	-- 	opts = {},
 	-- 	event = "BufEnter",
 	-- },
+	{ -- 重构代码
+		"ThePrimeagen/refactoring.nvim",
+		event = { "BufReadPre", "BufNewFile" },
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-treesitter/nvim-treesitter",
+		},
+		-- lazy = false,
+		opts = {},
+	},
 	-- { -- 快速切换文件（类似有grapple、arrow、dartboard、warp、booky、rabbit.nvim等）
 	-- 	"ThePrimeagen/harpoon",
 	-- 	branch = "harpoon2",
