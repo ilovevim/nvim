@@ -2488,6 +2488,76 @@ local plugins = {
 	-- 	opts = {},
 	-- 	event = "BufEnter",
 	-- },
+	-- { -- 快速切换文件（类似有grapple、arrow、dartboard、warp、booky、rabbit.nvim等）
+	-- 	"ThePrimeagen/harpoon",
+	-- 	branch = "harpoon2",
+	-- 	dependencies = { "nvim-lua/plenary.nvim" },
+	-- 	keys = {
+	-- 		{
+	-- 			"<leader>ha",
+	-- 			function()
+	-- 				require("harpoon"):list():add()
+	-- 			end,
+	-- 			desc = "harpoon: [a]dd",
+	-- 		},
+	-- 		{
+	-- 			"<leader>hp",
+	-- 			function()
+	-- 				require("harpoon"):list():prev()
+	-- 			end,
+	-- 			desc = "harpoon: [p]rev",
+	-- 		},
+	-- 		{
+	-- 			"<leader>hn",
+	-- 			function()
+	-- 				require("harpoon"):list():next()
+	-- 			end,
+	-- 			desc = "harpoon: [n]ext",
+	-- 		},
+	-- 		{
+	-- 			"<leader>hl",
+	-- 			function()
+	-- 				harpoon = require("harpoon")
+	-- 				harpoon.ui:toggle_quick_menu(harpoon:list())
+	-- 			end,
+	-- 			desc = "harpoon: [l]ist",
+	-- 		},
+	-- 	},
+	-- 	config = function()
+	-- 		require("harpoon").setup({
+	-- 			settings = {
+	-- 				save_on_toggle = true, -- 自动保存至内存
+	-- 				sync_on_ui_close = true, -- 自动保存至文件系统
+	-- 			},
+	-- 		})
+	--
+	-- 		harpoon = require("harpoon")
+	-- 		for i = 1, 9 do
+	-- 			vim.keymap.set("n", "<leader>h" .. i, function()
+	-- 				harpoon:list():select(i)
+	-- 			end, { desc = "file " .. i })
+	-- 		end
+	-- 	end,
+	-- },
+	{ -- 快速跳转文件
+		"otavioschwanck/arrow.nvim",
+		dependencies = {
+			{ "nvim-tree/nvim-web-devicons" },
+		},
+		opts = {
+			per_buffer_config = {
+				lines = 2,
+				satellite = { -- default to nil, display arrow index in scrollbar at every update
+					enable = false,
+					overlap = true,
+					priority = 1000,
+				},
+			},
+			show_icons = true,
+			leader_key = "\\", -- Recommended to be a single key
+			buffer_leader_key = "m", -- Per Buffer Mappings
+		},
+	},
 	{ -- 自动切换f-strings
 		"chrisgrieser/nvim-puppeteer",
 		lazy = false, -- plugin lazy-loads itself.
