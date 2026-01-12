@@ -276,7 +276,7 @@ local plugins = {
 		"mason-org/mason.nvim",
 		lazy = true,
 		keys = {
-			{ "<leader>mm", "<cmd>Mason<cr>", desc = "misc: [m]ason" },
+			{ "<leader>mm", "<cmd>Mason<cr>", desc = "[m]ason" },
 		},
 	},
 	{ -- Main LSP Configuration
@@ -1122,7 +1122,7 @@ local plugins = {
 				"<cmd>CodeCompanionChat Toggle<cr>",
 				{ noremap = true, silent = true, desc = "ai: [c]hat" }
 			)
-			vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
+			vim.keymap.set("v", "gp", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
 			-- vim.keymap.set("n", "<leader>cm", select_model, { desc = "ai: [m]odel" })
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
@@ -1634,6 +1634,27 @@ local plugins = {
 			-- statusline.section_location = function()
 			-- 	return "%2l:%-2v"
 			-- end
+
+			-- 按键映射优化
+			require("mini.keymap").setup()
+			local map_combo = require("mini.keymap").map_combo
+
+			-- Support most common modes. This can also contain 't', but would
+			-- only mean to press `<Esc>` inside terminal.
+			-- To not have to worry about the order of keys, also map "kj"
+			local mode = { "i", "c", "x", "s" }
+			map_combo(mode, "jk", "<BS><BS><Esc>")
+			map_combo(mode, "kj", "<BS><BS><Esc>")
+
+			-- Escape into Normal mode from Terminal mode
+			map_combo("t", "jk", "<BS><BS><C-\\><C-n>")
+			map_combo("t", "kj", "<BS><BS><C-\\><C-n>")
+
+			-- 文本块移动
+			require("mini.move").setup()
+
+			-- 文本块对齐
+			require("mini.align").setup()
 
 			-- ... and there is more!
 			--  Check out: https://github.com/nvim-mini/mini.nvim
@@ -2353,25 +2374,26 @@ local plugins = {
 				rules = {
 					{ pattern = "diag", icon = "󱖫 ", color = "green" },
 					{ pattern = "doc", icon = " ", color = "orange" },
-					{ pattern = "misc", icon = " ", color = "green" },
+					{ pattern = "misc", icon = " ", color = "green" },
 				},
 			},
 
 			-- Document existing key chains
 			spec = {
-				{ "<leader>a", group = "[a]vante" },
-				{ "<leader>b", group = "[b]uffer" },
-				{ "<leader>c", group = "[c]ode", mode = { "n", "x" } },
-				{ "<leader>d", group = "[d]ebug" },
-				{ "<leader>s", group = "[s]earch" },
-				{ "<leader>w", group = "[w]orkspace" },
-				{ "<leader>e", group = "[e]xtract", mode = { "n", "v" } },
-				{ "<leader>h", group = "[h]unk", mode = { "n", "v" } },
-				{ "<leader>v", group = "[v]env" },
-				{ "<leader>j", group = "[j]upyter" },
-				{ "<leader>r", group = "[r]est", mode = { "n", "v" } },
-				{ "<leader>m", group = "[m]isc", mode = { "n", "v" } },
-				{ "<leader>t", group = "[t]est", mode = { "n", "v" } },
+				{ "<leader>a", group = "avante" },
+				{ "<leader>b", group = "buffer" },
+				{ "<leader>c", group = "code", mode = { "n", "x" } },
+				{ "<leader>d", group = "debug" },
+				{ "<leader>s", group = "search" },
+				{ "<leader>w", group = "workspace" },
+				{ "<leader>e", group = "extract", mode = { "n", "v" } },
+				{ "<leader>h", group = "hunk", mode = { "n", "v" } },
+				{ "<leader>v", group = "venv" },
+				{ "<leader>j", group = "jupyter" },
+				{ "<leader>r", group = "rest", mode = { "n", "v" } },
+				{ "<leader>m", group = "misc", mode = { "n", "v" } },
+				{ "<leader>t", group = "test", mode = { "n", "v" } },
+				-- { "<leader>h", group = "harpoon", mode = { "n", "v" } },
 			},
 		},
 	},
@@ -2390,7 +2412,7 @@ local plugins = {
 			local pantran = require("pantran")
 			pantran.setup({ default_engine = "google" })
 
-			local opts = { noremap = true, silent = true, expr = true, desc = "translate" }
+			local opts = { noremap = true, silent = true, expr = true, desc = "[t]ranslate" }
 			-- vim.keymap.set("n", "<Leader>mt", pantran.motion_translate, opts)
 			vim.keymap.set("n", "<leader>mt", function()
 				return pantran.motion_translate() .. "_"

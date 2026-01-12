@@ -32,8 +32,8 @@ end, { desc = "diag: [e]nable" })
 -- keymap.set("i", "jk", "<ESC>")
 
 -- 多行移动
-keymap.set("v", "J", ":m '>+1<CR>gv=gv")
-keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+-- keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+-- keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 -- 注释，支持[count]gcc
 keymap.set("n", "<c-cr>", "gcc", { remap = true })
@@ -55,16 +55,17 @@ vim.keymap.set("n", "<C-Down>", "<C-w>-")
 keymap.set("n", "<c-c>", "<C-w>c") -- 关闭窗口
 
 -- 跳转到当前文件所属目录
--- keymap.set("n", "<A-j>", ':<c-r>=winnr()<cr>windo cd <c-r>=expand("%:p:h")<cr>')
-keymap.set("n", "<A-j>", ':cd <c-r>=expand("%:p:h")<cr>')
-keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
+-- keymap.set("n", "<A-e>", ':<c-r>=winnr()<cr>windo cd <c-r>=expand("%:p:h")<cr>')
+-- keymap.set("n", "<A-e>", ':cd <c-r>=expand("%:p:h")<cr>')
+-- keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
+vim.cmd("cabbrev cdh cd <c-r>=expand('%:p:h')<cr>")
 
 -- 保存文件
 keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer: [s]ave" })
 keymap.set("i", "<leader>bs", "<esc><cmd>update<cr>", { desc = "buffer: [s]ave" })
 
 -- Lazy Sync同步插件
-keymap.set("n", "<leader>ml", "<cmd>Lazy<cr>", { desc = "misc: [l]azy" })
+keymap.set("n", "<leader>ml", "<cmd>Lazy<cr>", { desc = "[l]azy" })
 -- keymap.set("n", "<leader>mm", "<cmd>Mason<cr>", { desc = "misc: [m]ason" })
 
 -- ---------- 插件 ---------- ---
@@ -169,17 +170,17 @@ end
 
 -- vim.keymap.set({ "n", "v" }, "<a-k>", "<cmd>lua require('dapui').eval(nil, {enter=true})<CR>")
 -- 执行表达式（取当前单词或选中的文本）
-vim.keymap.set({ "n", "v" }, "<a-k>", function()
+vim.keymap.set({ "n", "v" }, "<a-e>", function()
 	dap_eval(false)
 end)
 
 -- 执行表达式（弹出输入框）
-vim.keymap.set({ "n", "v" }, "<a-K>", function()
+vim.keymap.set({ "n", "v" }, "<a-E>", function()
 	dap_eval(true)
 end)
 
 -- 执行上次表达式
-keymap.set("n", "<a-l>", function()
+keymap.set("n", "<a-;>", function()
 	dap_eval_expr(last_eval_expr)
 end)
 
@@ -201,9 +202,10 @@ end)
 ----------------------------------------
 -- mini.nvim插件
 ----------------------------------------
-keymap.set("n", "<leader>mf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [f]ile" })
+keymap.set("n", "<leader>mf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini.[f]ile" })
 -- keymap.set("n", "<A-h>", "<cmd>lua MiniBracketed.buffer('backward')<cr>")
 -- keymap.set("n", "<A-l>", "<cmd>lua MiniBracketed.buffer('forward')<cr>")
+keymap.set("n", "<leader>bt", "<cmd>lua MiniTrailspace.trim()<cr>", { desc = "buffer: [t]rim space" })
 
 ----------------------------------------
 -- Spectre替换插件
@@ -213,10 +215,10 @@ keymap.set("n", "<leader>mf", "<cmd>lua MiniFiles.open()<cr>", { desc = "mini: [
 -- 	desc = "misc: [s]pectre",
 -- })
 keymap.set("n", "<leader>ms", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', {
-	desc = "misc: [s]pectre",
+	desc = "[s]pectre",
 })
 keymap.set("v", "<leader>ms", '<esc><cmd>lua require("spectre").open_visual()<CR>', {
-	desc = "misc: [s]pectre",
+	desc = "[s]pectre",
 })
 
 ----------------------------------------
