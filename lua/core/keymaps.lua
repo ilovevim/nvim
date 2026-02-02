@@ -59,6 +59,7 @@ keymap.set("n", "<c-c>", "<C-w>c") -- 关闭窗口
 -- keymap.set("n", "<A-e>", ':cd <c-r>=expand("%:p:h")<cr>')
 -- keymap.set("n", "<A-e>", ':e <c-r>=expand("%:p:h")<cr>\\')
 vim.cmd("cabbrev cdh cd <c-r>=expand('%:p:h')<cr>")
+keymap.set("n", "<leader>bg", "<cmd>term git add -p %<cr>", { desc = "buffer: [g]it add" })
 
 -- 保存文件
 keymap.set("n", "<leader>bs", "<cmd>update<cr>", { desc = "buffer: [s]ave" })

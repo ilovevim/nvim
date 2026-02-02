@@ -215,3 +215,9 @@ function _G.custom_foldtext()
 	return result
 end
 vim.opt.foldtext = "v:lua.custom_foldtext()"
+
+-- 打开终端时自动进入insert模式，并隐藏行号
+vim.api.nvim_create_autocmd("TermOpen", {
+	pattern = "*",
+	command = "startinsert | setlocal nonumber norelativenumber",
+})
