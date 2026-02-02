@@ -192,14 +192,12 @@ local plugins = {
 	-- "nvim-treesitter/nvim-treesitter-textobjects", -- 有flash后作用不大！
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
+		version = "*",
 		build = ":TSUpdate",
 		event = { "BufReadPre", "BufNewFile" },
 		-- dependencies = {
 		-- 	"nvim-treesitter/nvim-treesitter-textobjects", -- 有flash后作用不大！
 		-- },
-		-- main = "nvim-treesitter.configs", -- Sets main module to use for opts
-		-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-		-- opts = {
 		config = function()
 			local treesitter = require("nvim-treesitter.configs")
 
@@ -220,6 +218,7 @@ local plugins = {
 					"markdown",
 					"markdown_inline",
 					"query",
+					"regex",
 					"vim",
 					"vimdoc",
 				},
