@@ -44,7 +44,7 @@ end
 function M:create_progress_handle(request)
 	return progress.handle.create({
 		title = " " .. request.data.interaction .. " mode",
-		message = "Running...",
+		message = "Processing...",
 		lsp_client = {
 			name = M:llm_role_title(request.data.adapter),
 		},
@@ -53,7 +53,8 @@ end
 
 function M:llm_role_title(adapter)
 	local parts = {}
-	table.insert(parts, adapter.formatted_name)
+	-- formatted_name显示OpenAI Compatiable
+	table.insert(parts, adapter.name)
 	if adapter.model and adapter.model ~= "" then
 		table.insert(parts, "(" .. adapter.model .. ")")
 	end
