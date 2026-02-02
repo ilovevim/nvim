@@ -86,3 +86,9 @@ vim.api.nvim_create_autocmd("FileType", {
 		end, { buffer = ev.buf, desc = "misc: [p]andoc" })
 	end,
 })
+
+-- wxml文件配置（微信小程序）
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+	pattern = "*.wxml",
+	command = "set filetype=xml",
+})
