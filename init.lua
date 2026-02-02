@@ -1720,6 +1720,7 @@ local plugins = {
 				end,
 			},
 			{ "nvim-telescope/telescope-ui-select.nvim" },
+			-- { "debugloop/telescope-undo.nvim" },
 
 			-- Useful for getting pretty icons, but requires a Nerd Font.
 			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
@@ -1815,6 +1816,7 @@ local plugins = {
 					["ui-select"] = {
 						require("telescope.themes").get_dropdown(),
 					},
+					-- undo = {},
 				},
 			})
 
@@ -1823,6 +1825,7 @@ local plugins = {
 			pcall(require("telescope").load_extension, "ui-select")
 			-- 集成nvim-notify控件，可执行:Telescope notify
 			pcall(require("telescope").load_extension, "notify")
+			-- pcall(require("telescope").load_extension, "undo")
 
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")
@@ -1836,6 +1839,7 @@ local plugins = {
 			vim.keymap.set("n", "<leader>ss", builtin.grep_string, { desc = "search: [s]tring" })
 			vim.keymap.set("n", "<leader>st", builtin.builtin, { desc = "search: [t]elescope" })
 			vim.keymap.set("n", "<leader>sb", builtin.buffers, { desc = "search: [b]uffer" })
+			-- vim.keymap.set("n", "<leader>su", "<cmd>Telescope undo<cr>", { desc = "search: [u]ndo tree" })
 
 			-- Slightly advanced example of overriding default behavior and theme
 			vim.keymap.set("n", "<leader>s/", function()
@@ -2577,6 +2581,14 @@ local plugins = {
 		cmd = "ASToggle", -- optional for lazy loading on command
 		event = { "InsertLeave", "TextChanged" }, -- optional for lazy loading on trigger events
 		opts = {},
+	},
+	{ -- 可视化undo tree
+		"jiaoshijie/undotree",
+		lazy = true,
+		opts = {},
+		keys = { -- load the plugin only when using it's keybinding:
+			{ "<leader>bu", "<cmd>lua require('undotree').toggle()<cr>", desc = "buffer: [u]ndo tree" },
+		},
 	},
 	{ -- command-preview效果，比如Preview norm
 		"smjonas/live-command.nvim",
