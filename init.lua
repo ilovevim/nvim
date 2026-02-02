@@ -2624,13 +2624,17 @@ local plugins = {
 			vim.g.barbar_auto_setup = false
 		end,
 		opts = {
-			animation = false,
+			animation = true,
+			hide = { extensions = true },
 			icons = {
 				button = false,
-				separator = { right = " " },
-				inactive = { separator = { right = " " } },
+				filetype = { custom_colors = true, enabled = false },
+				-- 默认为▎，非活跃状态改为|以突出区别
+				separator = { right = "" },
+				inactive = { separator = { left = "|", right = "" } },
 			},
 			minimum_padding = 0,
+			maximum_length = 14,
 		},
 	},
 	{ -- 自动清理未使用的buffer，确保数量在限定范围内
