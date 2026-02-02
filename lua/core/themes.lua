@@ -41,6 +41,7 @@ local fonts = {
 	"UbuntuMono_Nerd_Font_Mono,霞鹜文楷等宽:h13", -- Ubuntu系统专用字体，英文字体太小
 	"VictorMono_NFM,霞鹜文楷等宽:h12", -- 字体太细
 	"YaHei_Consolas_Hybrid,Symbols_Nerd_Font:h12", -- 微软雅黑+Consolas混合字体（同时支持中英文）
+	"YaHei_Monaco_Hybird,Symbols_Nerd_Font:h12",
 }
 
 -- 自选颜色得到主题
