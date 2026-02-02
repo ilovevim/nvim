@@ -858,10 +858,10 @@ local plugins = {
 			sources = {
 				-- "avante", "codecompanion"
 				default = { "lsp", "path", "snippets", "buffer", "lazydev" },
-				-- per_filetype = {
-				-- codecompanion = { "codecompanion" },
-				-- sql = { "snippets", "dadbod", "buffer" },
-				-- },
+				per_filetype = {
+					codecompanion = { "codecompanion" },
+					-- sql = { "snippets", "dadbod", "buffer" },
+				},
 				providers = {
 					-- avante = {
 					-- 	module = "blink-cmp-avante",
@@ -1003,9 +1003,9 @@ local plugins = {
 	-- 		},
 	-- 	},
 	-- },
-	{
+	{ -- AI辅助，目前高频使用，不要延迟加载
 		"olimorris/codecompanion.nvim",
-		lazy = true,
+		event = { "BufReadPre", "BufNewFile" },
 		keys = {
 			{ "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "ai: [c]hat" },
 		},
@@ -1015,53 +1015,43 @@ local plugins = {
 				opts = { language = "Chinese", log_level = "INFO" },
 				-- tools = { enabled = false },
 				strategies = {
+					-- 默认用魔搭，硅基流动的模型相对贵，openrouter免费模型频繁下线
 					chat = {
-						adapter = "siliconflow",
-						-- keymaps = {
-						-- 	submit = {
-						-- 		modes = { n = "<CR>" },
-						-- 		description = "Submit",
-						-- 		callback = function(chat)
-						-- 			chat:apply_model(current_model)
-						-- 			chat:submit()
-						-- 		end,
-						-- 	},
-						-- },
+						adapter = "_modelscope",
+						roles = {
+							llm = function(adapter)
+								-- 模型名称类似于abc/def/ghi，为避免过长只取尾部/后面部分
+								return "Ai: " .. adapter.name .. "." .. adapter.model.name:match("([^/]+)$")
+							end,
+							user = "Me",
+						},
 					},
-					inline = {
-						adapter = "siliconflow",
-					},
+					inline = { adapter = "_modelscope" },
 				},
 				adapters = {
 					http = {
-						openrouter = function()
+						_modelscope = function()
 							return require("codecompanion.adapters").extend("openai_compatible", {
 								env = {
-									url = "https://openrouter.ai/api",
-									api_key = "OPENROUTER_API_KEY",
+									url = "https://api-inference.modelscope.cn",
+									api_key = "MODELSCOPE_ACCESS_TOKEN",
 									chat_url = "/v1/chat/completions",
-									-- models_endpoint = "/v1/models",
 								},
 								schema = {
 									model = {
-										default = "x-ai/grok-4.1-fast:free",
+										default = "Qwen/Qwen3-Coder-30B-A3B-Instruct",
 										choices = {
-											-- "deepseek/deepseek-chat-v3.1:free",
-											-- "microsoft/mai-ds-r1:free",
-											-- "tngtech/deepseek-r1t2-chimera:free",
-											-- "qwen/qwen3-coder:free",
-											-- "moonshotai/kimi-dev-72b:free",
-											-- "z-ai/glm-4.5-air:free",
-											"x-ai/grok-4.1-fast:free",
-											"deepseek/deepseek-r1-0528:free",
-											-- "google/gemini-2.0-flash-exp:free",
-											-- "openai/gpt-oss-20b:free",
+											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
+											"Qwen/Qwen3-Next-80B-A3B-Instruct",
+											"ZhipuAI/GLM-4.7",
+											"Qwen/Qwen3-Coder-480B-A35B-Instruct",
+											"deepseek-ai/DeepSeek-V3.2",
 										},
 									},
 								},
 							})
 						end,
-						siliconflow = function()
+						_siliconflow = function()
 							return require("codecompanion.adapters").extend("openai_compatible", {
 								env = {
 									url = "https://api.siliconflow.cn",
@@ -1070,10 +1060,14 @@ local plugins = {
 								},
 								schema = {
 									model = {
-										default = "deepseek-ai/DeepSeek-V3.2-Exp",
+										default = "deepseek-ai/DeepSeek-V3.2",
 										choices = {
-											"deepseek-ai/DeepSeek-V3.2-Exp",
+											"deepseek-ai/DeepSeek-V3.2",
+											-- "Qwen/Qwen3-Coder-480B-A35B-Instruct",
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
+											"Pro/deepseek-ai/DeepSeek-V3.2",
+											"Pro/zai-org/GLM-4.7",
+											"Pro/MiniMaxAI/MiniMax-M2.1",
 										},
 									},
 								},
@@ -1116,14 +1110,13 @@ local plugins = {
 				"<cmd>CodeCompanionActions<cr>",
 				{ noremap = true, silent = true, desc = "ai: [a]ction" }
 			)
-			vim.keymap.set(
-				{ "n", "v" },
-				"<leader>cc",
-				"<cmd>CodeCompanionChat Toggle<cr>",
-				{ noremap = true, silent = true, desc = "ai: [c]hat" }
-			)
+			-- vim.keymap.set(
+			-- 	{ "n", "v" },
+			-- 	"<leader>cc",
+			-- 	"<cmd>CodeCompanionChat Toggle<cr>",
+			-- 	{ noremap = true, silent = true, desc = "ai: [c]hat" }
+			-- )
 			vim.keymap.set("v", "gp", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
-			-- vim.keymap.set("n", "<leader>cm", select_model, { desc = "ai: [m]odel" })
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
 
