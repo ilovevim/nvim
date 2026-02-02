@@ -55,7 +55,7 @@ local themes = {
 	"github_dark_dimmed",
 	"gruvbox-material",
 	"hybrid",
-	"jellybeans",
+	"yellowbeans",
 	"kanagawa",
 	"melange",
 	"miasma",
@@ -159,15 +159,17 @@ M.switch_style = function(flag)
 end
 
 M.set_style = function()
+	local theme = vim.g.colors_name
+	local font = string.gsub(vim.o.guifont, "_[%w]+", "")
 	local options = {
-		{ desc = "switch theme", value = 1 },
-		{ desc = "switch font", value = 2 },
+		{ desc = "switch theme - " .. theme, value = 1 },
+		{ desc = "switch font  - " .. font, value = 2 },
 		{ desc = "increase font size", value = 3 },
 		{ desc = "decrease font size", value = 4 },
 	}
 
 	vim.ui.select(options, {
-		prompt = vim.g.colors_name .. " | " .. string.gsub(vim.o.guifont, "_[%w]+", ""),
+		prompt = "Adjust theme and font",
 		format_item = function(item)
 			return item.desc
 		end,
