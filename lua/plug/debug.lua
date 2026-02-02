@@ -138,7 +138,7 @@ return { -- NOTE: Yes, you can install new plugins here!
 		})
 
 		-- 不切换到dapui多个调试窗口，保持在源代码窗口
-		-- dap.listeners.after.event_initialized["dapui_config"] = dapui.open
+		dap.listeners.after.event_initialized["dapui_config"] = dapui.open
 		dap.listeners.before.event_terminated["dapui_config"] = dapui.close
 		dap.listeners.before.event_exited["dapui_config"] = dapui.close
 
@@ -160,7 +160,8 @@ return { -- NOTE: Yes, you can install new plugins here!
 		local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
 		-- local python_path = mason_path .. "packages/debugpy/venv/Scripts/python"
 
-		-- neovim中调试python3.8.6程序，启用项目根目录下.venv虚拟环境，结果启动debug后，会弹出一个.venv\Scripts \python.exe命令行窗口，此时可以考虑将python换为pythonw（后台无窗口进程，但这样input()操作可能会挂起），慎用
+		-- neovim中调试启用.venv虚拟环境，会弹出一个.venv\Scripts\python.exe命令行窗口，
+		-- 酌情将python换为pythonw，即启用后台无窗口进程，但这样input()操作可能会挂起，谨慎使用
 		local python_path = "python"
 		dap_python.setup(python_path)
 
