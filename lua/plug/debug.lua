@@ -70,6 +70,13 @@ return { -- NOTE: Yes, you can install new plugins here!
 			desc = "debug: step over",
 		},
 		{
+			"<M-L>",
+			function()
+				require("dap").run_to_cursor()
+			end,
+			desc = "debug: run to cursor",
+		},
+		{
 			"<leader>db",
 			function()
 				require("dap").toggle_breakpoint()

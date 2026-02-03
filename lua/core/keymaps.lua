@@ -173,17 +173,17 @@ end
 -- 执行表达式（取当前单词或选中的文本）
 vim.keymap.set({ "n", "v" }, "<a-e>", function()
 	dap_eval(false)
-end)
+end, { desc = "debug: eval curr expr" })
 
 -- 执行表达式（弹出输入框）
 vim.keymap.set({ "n", "v" }, "<a-E>", function()
 	dap_eval(true)
-end)
+end, { desc = "debug: eval input expr" })
 
 -- 执行上次表达式
 keymap.set("n", "<a-;>", function()
 	dap_eval_expr(last_eval_expr)
-end)
+end, { desc = "debug: eval last expr" })
 
 ----------------------------------------
 -- inc-rename插件预览式更名，替换vim.lsp.buf.rename
