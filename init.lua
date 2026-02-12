@@ -2627,25 +2627,25 @@ local plugins = {
 	-- 		end
 	-- 	end,
 	-- },
-	{ -- 快速跳转文件
-		"otavioschwanck/arrow.nvim",
-		dependencies = {
-			{ "nvim-tree/nvim-web-devicons" },
-		},
-		opts = {
-			per_buffer_config = {
-				lines = 2,
-				satellite = { -- default to nil, display arrow index in scrollbar at every update
-					enable = false,
-					overlap = true,
-					priority = 1000,
-				},
-			},
-			show_icons = true,
-			leader_key = "\\", -- Recommended to be a single key
-			buffer_leader_key = "m", -- Per Buffer Mappings
-		},
-	},
+	-- { -- 快速跳转文件
+	-- 	"otavioschwanck/arrow.nvim",
+	-- 	dependencies = {
+	-- 		{ "nvim-tree/nvim-web-devicons" },
+	-- 	},
+	-- 	opts = {
+	-- 		per_buffer_config = {
+	-- 			lines = 3,
+	-- 			satellite = { -- default to nil, display arrow index in scrollbar at every update
+	-- 				enable = false,
+	-- 				overlap = true,
+	-- 				priority = 1000,
+	-- 			},
+	-- 		},
+	-- 		show_icons = true,
+	-- 		leader_key = "\\", -- Recommended to be a single key
+	-- 		buffer_leader_key = "m", -- Per Buffer Mappings
+	-- 	},
+	-- },
 	{ -- 自动切换f-strings
 		"chrisgrieser/nvim-puppeteer",
 		lazy = false, -- plugin lazy-loads itself.
@@ -2706,14 +2706,14 @@ local plugins = {
 			vim.g.barbar_auto_setup = false
 		end,
 		opts = {
-			animation = true,
+			animation = false,
 			hide = { extensions = true },
 			icons = {
 				button = false,
 				filetype = { custom_colors = true, enabled = false },
-				-- 默认为▎，非活跃状态改为|以突出区别
-				separator = { right = "" },
-				inactive = { separator = { left = "|", right = "" } },
+				-- 分隔符默认为▎，右边界设为空格，美化间隔
+				separator = { right = " " },
+				inactive = { separator = { right = " " } },
 			},
 			minimum_padding = 0,
 			maximum_length = 14,
@@ -2722,6 +2722,82 @@ local plugins = {
 	{ -- 自动清理未使用的buffer，确保数量在限定范围内
 		"ChuufMaster/buffer-vacuum",
 		opts = { max_buffers = 15 },
+	},
+	-- { -- 切换buffer
+	-- 	"voxelprismatic/rabbit.nvim",
+	-- 	branch = "rewrite",
+	-- 	lazy = false,
+	--
+	-- 	---@type Rabbit.Config
+	-- 	opts = {},
+	-- 	config = true,
+	-- },
+	-- { -- 缓冲区列表
+	-- 	"EL-MASTOR/bufferlist.nvim",
+	-- 	lazy = true,
+	-- 	keys = { { "<Leader>bl", ":BufferList<CR>", desc = "buffer: [l]ist" } },
+	-- 	dependencies = "nvim-tree/nvim-web-devicons",
+	-- 	cmd = "BufferList",
+	-- 	opts = {},
+	-- },
+	-- { --缓冲区管理
+	-- 	-- "mong8se/buffish.nvim",
+	-- 	"j-morano/buffer_manager.nvim",
+	-- 	config = function()
+	-- 		require("buffer_manager").setup({
+	-- 			short_file_names = true,
+	-- 			order_buffers = "filename",
+	-- 		})
+	-- 	end,
+	-- },
+	{ -- 快速切换buffer
+		"ilovevim/buffer-sticks.nvim",
+		event = "VeryLazy",
+		keys = {
+			{
+				"\\",
+				function()
+					BufferSticks.jump()
+				end,
+				desc = "Jump to buffer",
+			},
+		},
+		config = function()
+			local sticks = require("buffer-sticks")
+			sticks.setup({
+				show_indicators = false,
+				position = "center",
+				active_char = "──",
+				inactive_char = "─",
+				alternate_char = "─",
+				filter = { buftypes = { "terminal" } },
+				list = {
+					show = { "label", "filename" },
+					sort = { field = "label" },
+					align = {
+						label = "right",
+						filename = "left",
+					},
+					separator = " ",
+				},
+				preview = {
+					enabled = false,
+				},
+				highlights = {
+					active = { link = "Statement" },
+					alternate = { link = "StorageClass" },
+					inactive = { fg = "#ADADAD" },
+					active_modified = { link = "Constant" },
+					alternate_modified = { link = "Constant" },
+					inactive_modified = { link = "Constant" },
+					label = { link = "ErrorMsg" },
+					filter_selected = { link = "Statement" },
+					filter_title = { link = "Comment" },
+					list_selected = { link = "Statement" },
+				},
+			})
+			sticks.show()
+		end,
 	},
 	-- { -- 切分代码行/汇总代码块：未比mini.splitjoin更好
 	-- 	"Wansmer/treesj",
