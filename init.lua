@@ -1006,12 +1006,12 @@ local plugins = {
 		"olimorris/codecompanion.nvim",
 		event = { "BufReadPre", "BufNewFile" },
 		keys = {
-			{ "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "ai: [c]hat" },
+			{ "gp", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n" }, desc = "ai: [c]hat" },
 		},
 		config = function()
 			--https://github.com/olimorris/codecompanion.nvim/issues/2270
 			require("codecompanion").setup({
-				opts = { language = "Chinese", log_level = "INFO" },
+				-- opts = { language = "Chinese", log_level = "INFO" },
 				-- tools = { enabled = false },
 				strategies = {
 					-- 默认用魔搭，硅基流动的模型相对贵，openrouter免费模型频繁下线
@@ -1043,10 +1043,68 @@ local plugins = {
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
 											"Qwen/Qwen3-Next-80B-A3B-Instruct",
 											"ZhipuAI/GLM-4.7",
+											"moonshotai/Kimi-K2.5",
 											"Qwen/Qwen3-Coder-480B-A35B-Instruct",
 											"deepseek-ai/DeepSeek-V3.2",
 										},
 									},
+								},
+								handlers = {
+									-- AI请求执行完成时，解析响应头获取配额信息
+									-- https://github.com/olimorris/codecompanion.nvim/discussions/2395
+									on_exit = function(self, data)
+										-- Extract quota information
+										local quota_info = {}
+
+										local model_name = nil
+										-- Extract model name from body
+										if data.body then
+											model_name = string.match(data.body, '"model":"([^"]+)"')
+										end
+
+										if not model_name or not data.headers then
+											return
+										end
+
+										-- 响应头中包含配额信息，以key: value这样的字符串形式传输，需要解析
+										-- Parse headers to extract key-value pairs
+										local parsed_headers = {}
+										for _, header_string in ipairs(data.headers) do
+											-- Split by first colon and space
+											local key, value = string.match(header_string, "([^:]+):%s*(.+)")
+											if key and value then
+												parsed_headers[key] = value
+											end
+										end
+
+										-- Define mappings for Modelscope headers
+										local mappings = {
+											["Modelscope-Ratelimit-Requests-Limit"] = "user_daily_limit",
+											["Modelscope-Ratelimit-Requests-Remaining"] = "user_daily_remain",
+											["Modelscope-Ratelimit-Model-Requests-Limit"] = "model_daily_limit",
+											["Modelscope-Ratelimit-Model-Requests-Remaining"] = "model_daily_remain",
+										}
+
+										quota_info["model_name"] = model_name
+										for header, quota_item in pairs(mappings) do
+											if parsed_headers[header] then
+												quota_info[quota_item] = parsed_headers[header]
+											end
+										end
+
+										-- Store model_name and model_daily_limit in global variable
+										if
+											quota_info.model_name
+											and quota_info.model_daily_remain
+											and _G.MODEL_QUOTA_INFO
+										then
+											_G.MODEL_QUOTA_INFO["modelscope." .. quota_info.model_name] =
+												quota_info.model_daily_remain
+										end
+
+										vim.notify(vim.inspect(_G.MODEL_QUOTA_INFO))
+										vim.notify(string.format("模型额度信息: %s", vim.inspect(quota_info)))
+									end,
 								},
 							})
 						end,
@@ -1115,9 +1173,33 @@ local plugins = {
 			-- 	"<cmd>CodeCompanionChat Toggle<cr>",
 			-- 	{ noremap = true, silent = true, desc = "ai: [c]hat" }
 			-- )
-			vim.keymap.set("v", "gp", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
+			vim.keymap.set("v", "gP", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
+
+			-- 增加hook拦截，竖屏模式下codecompanion窗口置底
+			local hooks_group = vim.api.nvim_create_augroup("CodeCompanionHooks", {})
+			vim.api.nvim_create_autocmd({ "User" }, {
+				pattern = "CodeCompanion*",
+				group = hooks_group,
+				callback = function(request)
+					if request.match == "CodeCompanionChatOpened" then
+						-- 基于宽高比经验值2区分竖屏，严谨就得调操作系统API
+						if (vim.o.columns / vim.o.lines) < 2 then
+							if vim.bo.filetype == "codecompanion" then
+								vim.cmd("wincmd J")
+							end
+						end
+					end
+				end,
+			})
+
+			-- 全局变量：模型额度信息
+			_G.MODEL_QUOTA_INFO = {}
+			function show_model_quota()
+				vim.notify(string.format("模型剩余额度: %s", vim.inspect(_G.MODEL_QUOTA_INFO)))
+			end
+			vim.keymap.set("n", "<leader>cq", show_model_quota, { desc = "ai: [q]uota" })
 
 			-- 进度提醒
 			require("plug.fidget-spinner"):init()
