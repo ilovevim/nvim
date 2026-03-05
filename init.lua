@@ -1079,9 +1079,9 @@ local plugins = {
 
 										-- Define mappings for Modelscope headers
 										local mappings = {
-											["Modelscope-Ratelimit-Requests-Limit"] = "user_daily_limit",
-											["Modelscope-Ratelimit-Requests-Remaining"] = "user_daily_remain",
-											["Modelscope-Ratelimit-Model-Requests-Limit"] = "model_daily_limit",
+											-- ["Modelscope-Ratelimit-Requests-Limit"] = "user_daily_limit",
+											-- ["Modelscope-Ratelimit-Requests-Remaining"] = "user_daily_remain",
+											-- ["Modelscope-Ratelimit-Model-Requests-Limit"] = "model_daily_limit",
 											["Modelscope-Ratelimit-Model-Requests-Remaining"] = "model_daily_remain",
 										}
 
@@ -1092,18 +1092,20 @@ local plugins = {
 											end
 										end
 
-										-- Store model_name and model_daily_limit in global variable
-										if
-											quota_info.model_name
-											and quota_info.model_daily_remain
-											and _G.MODEL_QUOTA_INFO
-										then
-											_G.MODEL_QUOTA_INFO["modelscope." .. quota_info.model_name] =
+										-- Store model_name and model_daily_remain in global variable
+										if model_name and quota_info.model_daily_remain and _G.MODEL_QUOTA_INFO then
+											_G.MODEL_QUOTA_INFO["modelscope." .. model_name] =
 												quota_info.model_daily_remain
+											vim.notify(
+												string.format(
+													"%s 剩余额度: %s",
+													model_name,
+													quota_info.model_daily_remain
+												)
+											)
 										end
 
-										vim.notify(vim.inspect(_G.MODEL_QUOTA_INFO))
-										vim.notify(string.format("模型额度信息: %s", vim.inspect(quota_info)))
+										-- vim.notify(string.format("模型额度信息: %s", vim.inspect(quota_info)))
 									end,
 								},
 							})
@@ -1195,7 +1197,7 @@ local plugins = {
 
 			-- 全局变量：模型额度信息
 			_G.MODEL_QUOTA_INFO = {}
-			function show_model_quota()
+			local function show_model_quota()
 				vim.notify(string.format("模型剩余额度: %s", vim.inspect(_G.MODEL_QUOTA_INFO)))
 			end
 			vim.keymap.set("n", "<leader>cq", show_model_quota, { desc = "ai: [q]uota" })
