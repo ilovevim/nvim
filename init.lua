@@ -1184,8 +1184,7 @@ local plugins = {
 				group = hooks_group,
 				callback = function(request)
 					if request.match == "CodeCompanionChatOpened" then
-						-- 基于宽高比经验值2区分竖屏，严谨就得调操作系统API
-						if (vim.o.columns / vim.o.lines) < 2 then
+						if require("core/utils").is_vertical_screen() then
 							if vim.bo.filetype == "codecompanion" then
 								vim.cmd("wincmd J")
 							end
@@ -1861,7 +1860,7 @@ local plugins = {
 						"--smart-case",
 						"--trim", -- add this value
 					},
-					layout_strategy = "vertical",
+					layout_strategy = "horizontal",
 					layout_config = {
 						horizontal = {
 							-- https://yeripratama.com/blog/customizing-nvim-telescope/
@@ -1944,6 +1943,16 @@ local plugins = {
 			vim.keymap.set("n", "<leader>sv", function()
 				builtin.find_files({ cwd = vim.fn.stdpath("config") })
 			end, { desc = "search: [v]im file" })
+
+			-- 横竖屏切换后调整布局
+			vim.api.nvim_create_autocmd("VimResized", {
+				group = vim.api.nvim_create_augroup("TelescopeResizeGroup", { clear = true }),
+				callback = function(event)
+					local is_vertical = require("core/utils").is_vertical_screen()
+					-- lua中实现类似三元运算符的功能condition ? value1 : value2
+					require("telescope.config").values.layout_strategy = is_vertical and "vertical" or "horizontal"
+				end,
+			})
 		end,
 	},
 	{ -- flash闪电移动

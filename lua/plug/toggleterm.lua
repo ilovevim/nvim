@@ -121,7 +121,7 @@ M.run_file = function(filename, filetype)
 		direction = "vertical"
 
 		-- 如果竖屏则切换为水平方向堆叠（宽高比经验值2区分）
-		if (vim.o.columns / vim.o.lines) < 2 then
+		if require("core/utils").is_vertical_screen() then
 			direction = "horizontal"
 		end
 
