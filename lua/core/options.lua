@@ -52,6 +52,9 @@ vim.o.gdefault = true
 -- 光标行
 vim.o.cursorline = true
 
+-- Normal模式光标增加闪烁，其他不变（比如Insert下竖线，Replace下显示横杠）
+vim.o.guicursor = vim.o.guicursor:gsub("(n[^,]*:block),", "%1-blinkwait500-blinkon500-blinkoff500,")
+
 -- 启用鼠标
 -- vim.o.mouse:append("a")
 vim.o.mouse = "a"
