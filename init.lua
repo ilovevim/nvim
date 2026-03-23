@@ -1024,6 +1024,7 @@ local plugins = {
 							end,
 							user = "Me",
 						},
+						variables = {},
 					},
 					inline = { adapter = "_modelscope" },
 				},
