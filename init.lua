@@ -2880,6 +2880,11 @@ local plugins = {
 			{ "gs", "<cmd>NodeAction<cr>", mode = "n", desc = "ts-node-action" },
 		},
 	},
+	{ -- 屏幕显示按键
+		"NStefan002/screenkey.nvim",
+		lazy = false,
+		version = "*", -- or branch = "main", to use the latest commit
+	},
 	-- 颜色主题，部分插件关闭注释斜体在options.lua中设置
 	{ "folke/tokyonight.nvim", lazy = true, opts = { styles = { comments = { italic = false } } } },
 	{ "HoNamDuong/hybrid.nvim", lazy = true, opts = { italic = { comments = false } } },
