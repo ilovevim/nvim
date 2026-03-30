@@ -2952,6 +2952,10 @@ local plugins = {
 }
 
 local opts = {
+	rocks = {
+		enabled = false, -- 完全禁用 luarocks 依赖
+		-- hererocks = true, -- 可选，但不必须
+	},
 	ui = {
 		-- If you are using a Nerd Font: set icons to an empty table which will use the
 		-- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
