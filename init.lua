@@ -1006,7 +1006,7 @@ local plugins = {
 						adapter = "_modelscope",
 						roles = {
 							llm = function(adapter)
-								-- 模型名称类似于abc/def/ghi，为避免过长只取尾部/后面部分
+								-- 模型名称类似于abc/def/ghi，只取最后一个ghi
 								return "Ai: " .. adapter.name .. "." .. adapter.model.name:match("([^/]+)$")
 							end,
 							user = "Me",
