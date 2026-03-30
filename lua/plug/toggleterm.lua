@@ -6,7 +6,7 @@
 -- vim.g.run_cmd_args = "-m pytest"
 vim.g.run_cmd_args = ""
 
--- 来自大模型生成代码
+-- 模糊查找文件（来自大模型生成代码）
 local function find_files_by_patterns(root_dir, patterns)
 	local found_files = {}
 	local handle
@@ -106,10 +106,11 @@ M.run_file = function(filename, filetype)
 	-- 基于文件类型，指定执行程序
 	-- local filetype = vim.bo.filetype
 	if filetype == "python" then
-		cmd = "python " .. filename
+		-- 不知何故，PYTHONPATH环境变量不起作用，需要此处显示指定
+		cmd = "set PYTHONPATH=.;src && python " .. filename
 		-- 以test开头或结尾的文件，启用pytest
 		if string.match(filename, "[/\\]*test_.+py$") ~= nil or string.match(filename, "[/\\]*.+_test.py$") ~= nil then
-			cmd = "python " .. vim.g.run_cmd_args .. " " .. filename
+			cmd = "set PYTHONPATH=.;src && python " .. vim.g.run_cmd_args .. " " .. filename
 		end
 	elseif filetype == "java" then
 		cmd = "java " .. filename

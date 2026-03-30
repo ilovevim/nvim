@@ -492,14 +492,20 @@ local plugins = {
 					end
 
 					local cwd = vim.fn.getcwd()
+					-- 规范化目录分隔符为/，windows上为\
+					cwd = string.gsub(cwd, "\\", "/")
 
-					-- python项目根目录cwd加入到lsp模块搜索目录中，避免找不到模块显示错误
+					-- python项目根目录cwd及src目录加入到LSP搜索目录中，避免代码无法跳转
 					if client and client.name == "pyright" then
-						client.settings.python.analysis.extraPaths = { cwd } -- pyright
-						if not vim.tbl_contains(vim.lsp.buf.list_workspace_folders(), cwd) then
-							vim.lsp.buf.add_workspace_folder(cwd)
+						local extraPaths = { cwd, cwd .. "/src" }
+						local workspace_folders = vim.lsp.buf.list_workspace_folders()
+						for _, folder in ipairs(extraPaths) do
+							if vim.fn.isdirectory(folder) == 1 and not vim.tbl_contains(workspace_folders, folder) then
+								vim.lsp.buf.add_workspace_folder(folder)
+							end
 						end
 
+						client.settings.python.analysis.extraPaths = extraPaths -- pyright
 						-- 排除扫描目录，降低pyright内存消耗
 						client.settings.python.analysis.exclude =
 							{ "**/node_modules", "**/__pycache__", "**/.venv", "**/site-packages" }
