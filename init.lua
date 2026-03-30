@@ -2718,10 +2718,22 @@ local plugins = {
 			maximum_length = 14,
 		},
 	},
-	{ -- 自动清理未使用的buffer，确保数量在限定范围内
-		"ChuufMaster/buffer-vacuum",
-		opts = { max_buffers = 15 },
+	-- { -- 自动清理未使用的buffer，确保数量在限定范围内
+	-- 	"ChuufMaster/buffer-vacuum",
+	-- 	opts = { max_buffers = 15 },
+	-- },
+	{ -- 自动关闭未插入或修改的buffer
+		"axkirillov/hbac.nvim",
+		config = true,
 	},
+	-- { --自动关闭不活跃buffer
+	-- 	"chrisgrieser/nvim-early-retirement",
+	-- 	event = "VeryLazy",
+	-- 	opts = {
+	-- 		retirementAgeMins = 20,
+	-- 		minimumBufferNum = 8,
+	-- 	},
+	-- },
 	-- { -- 切换buffer
 	-- 	"voxelprismatic/rabbit.nvim",
 	-- 	branch = "rewrite",
