@@ -192,60 +192,52 @@ local plugins = {
 	-- "nvim-treesitter/nvim-treesitter-textobjects", -- 有flash后作用不大！
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
-		version = "*",
+		-- version = "*",
 		build = ":TSUpdate",
 		event = { "BufReadPre", "BufNewFile" },
 		-- dependencies = {
 		-- 	"nvim-treesitter/nvim-treesitter-textobjects", -- 有flash后作用不大！
 		-- },
 		config = function()
-			local treesitter = require("nvim-treesitter.configs")
+			local parsers = {
+				"bash",
+				"c",
+				"diff",
+				"html",
+				"lua",
+				"luadoc",
+				"markdown",
+				"markdown_inline",
+				"python",
+				"query",
+				"vim",
+				"vimdoc",
+			}
+			require("nvim-treesitter").install(parsers)
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
+					local buf, filetype = args.buf, args.match
 
-			-- configure treesitter
-			---@diagnostic disable-next-line: missing-fields
-			treesitter.setup({
-				ensure_installed = {
-					"json",
-					"javascript",
-					"yaml",
-					"html",
-					"bash",
-					"c",
-					"diff",
-					"html",
-					"lua",
-					"luadoc",
-					"markdown",
-					"markdown_inline",
-					"query",
-					"regex",
-					"vim",
-					"vimdoc",
-				},
-				-- Autoinstall languages that are not installed
-				auto_install = true,
-				highlight = {
-					enable = true,
-					-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-					--  If you are experiencing weird indenting issues, add the language to
-					--  the list of additional_vim_regex_highlighting and disabled languages for indent.
-					additional_vim_regex_highlighting = { "ruby" },
-				},
-				indent = { enable = true, disable = { "ruby" } },
+					local language = vim.treesitter.language.get_lang(filetype)
+					if not language then
+						return
+					end
 
-				-- 不同括号颜色区分
-				rainbow = {
-					enable = true,
-					-- extended_mode = true,
-					-- max_file_lines = nil,
-				},
+					-- check if parser exists and load it
+					if not vim.treesitter.language.add(language) then
+						return
+					end
+					-- enables syntax highlighting and other treesitter features
+					vim.treesitter.start(buf, language)
 
-				-- There are additional nvim-treesitter modules that you can use to interact
-				-- with nvim-treesitter. You should go explore a few and see what interests you:
-				--
-				--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-				--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-				--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+					-- enables treesitter based folds
+					-- for more info on folds see `:help folds`
+					vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+					vim.wo.foldmethod = "expr"
+
+					-- enables treesitter based indentation
+					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end,
 			})
 		end,
 	},
@@ -300,7 +292,7 @@ local plugins = {
 			},
 
 			-- Allows extra capabilities provided by blink.cmp
-			"saghen/blink.cmp",
+			-- "saghen/blink.cmp",
 		},
 		config = function()
 			-- Brief aside: **What is LSP?**
@@ -399,33 +391,13 @@ local plugins = {
 					map("gi", vim.lsp.buf.incoming_calls, "goto [i]ncoming_calls")
 					map("go", vim.lsp.buf.outgoing_calls, "goto [o]utming_calls")
 
-					-- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
-					---@param client vim.lsp.Client
-					---@param method vim.lsp.protocol.Method
-					---@param bufnr? integer some lsp support methods only in specific files
-					---@return boolean
-					local function client_supports_method(client, method, bufnr)
-						if vim.fn.has("nvim-0.11") == 1 then
-							return client:supports_method(method, bufnr)
-						else
-							return client.supports_method(method, { bufnr = bufnr })
-						end
-					end
-
 					-- The following two autocommands are used to highlight references of the
 					-- word under your cursor when your cursor rests there for a little while.
 					--    See `:help CursorHold` for information about when this is executed
 					--
 					-- When you move your cursor, the highlights will be cleared (the second autocommand).
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
-					if
-						client
-						and client_supports_method(
-							client,
-							vim.lsp.protocol.Methods.textDocument_documentHighlight,
-							event.buf
-						)
-					then
+					if client and client:supports_method("textDocument/documentHighlight", event.buf) then
 						local highlight_augroup =
 							vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
 						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
@@ -451,10 +423,7 @@ local plugins = {
 
 					-- The following code creates a keymap to toggle inlay hints in your
 					-- code, if the language server you are using supports them
-					if
-						client
-						and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf)
-					then
+					if client and client:supports_method("textDocument/inlayHint", event.buf) then
 						map("<leader>ch", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
 						end, "code: [h]int")
@@ -463,11 +432,7 @@ local plugins = {
 					-- 尝试启用LSP自带的折叠功能
 					if
 						client
-						and client_supports_method(
-							client,
-							vim.lsp.protocol.Methods.textDocument_foldingRange,
-							event.buf
-						)
+						and client:supports_method(vim.lsp.protocol.Methods.textDocument_foldingRange, event.buf)
 					then
 						local win = vim.api.nvim_get_current_win()
 						vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
@@ -513,35 +478,6 @@ local plugins = {
 				end,
 			})
 
-			-- Diagnostic Config
-			-- See :help vim.diagnostic.Opts
-			vim.diagnostic.config({
-				severity_sort = true,
-				float = { border = "rounded", source = "if_many" },
-				underline = { severity = vim.diagnostic.severity.ERROR },
-				signs = vim.g.have_nerd_font and {
-					text = {
-						[vim.diagnostic.severity.ERROR] = "󰅚 ",
-						[vim.diagnostic.severity.WARN] = "󰀪 ",
-						[vim.diagnostic.severity.INFO] = "󰋽 ",
-						[vim.diagnostic.severity.HINT] = "󰌶 ",
-					},
-				} or {},
-				virtual_text = {
-					source = "if_many",
-					spacing = 2,
-					format = function(diagnostic)
-						local diagnostic_message = {
-							[vim.diagnostic.severity.ERROR] = diagnostic.message,
-							[vim.diagnostic.severity.WARN] = diagnostic.message,
-							[vim.diagnostic.severity.INFO] = diagnostic.message,
-							[vim.diagnostic.severity.HINT] = diagnostic.message,
-						}
-						return diagnostic_message[diagnostic.severity]
-					end,
-				},
-			})
-
 			-- LSP servers and clients are able to communicate to each other what features they support.
 			--  By default, Neovim doesn't support everything that is in the LSP specification.
 			--  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
@@ -558,50 +494,50 @@ local plugins = {
 			--  - settings (table): Override the default settings passed when initializing the server.
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
-				-- clangd = {},
+				clangd = {},
 				-- gopls = {},
 
 				-- pyright侧重于类型检查，ruff负责lint、import、快速修复
 				-- https://microsoft.github.io/pyright/#/settings
-				-- pyright = {
-				-- 	settings = {
-				-- 		-- pyright = {
-				-- 		-- 			-- disableLanguageServices = false, -- 保持基础 LSP 功能
-				-- 		-- 			disableOrganizeImports = true, -- 关闭 Pyright 自带的 import 整理
-				-- 		-- 		},
-				-- 		python = {
-				-- 			analysis = {
-				-- 				extraPaths = { "." },
-				-- 				-- 				-- useLibraryCodeForTypes = true,
-				-- 				-- 				-- diagnosticSeverityOverrides = {
-				-- 				-- 				-- 	reportUnusedImport = "none", -- 禁用未使用导入的提示
-				-- 				-- 				-- },
-				-- 				-- 				-- autoImportCompletions = true,
-				-- 				-- 				-- typeCheckingMode = "strict",
-				-- 				-- 				-- diagnosticMode = "workspace", -- 降低实时诊断频率
-				-- 				-- 				linting = { enabled = false }, -- 彻底关闭 Pyright 的 lint 功能
-				-- 				--
-				-- 				-- 				-- Ignore all files for analysis to exclusively use Ruff for linting
-				-- 				-- 				-- ignore = { "*" },
-				-- 			},
-				-- 		},
-				-- 	},
-				-- },
+				pyright = {
+					-- 	settings = {
+					-- 		-- pyright = {
+					-- 		-- 			-- disableLanguageServices = false, -- 保持基础 LSP 功能
+					-- 		-- 			disableOrganizeImports = true, -- 关闭 Pyright 自带的 import 整理
+					-- 		-- 		},
+					-- 		python = {
+					-- 			analysis = {
+					-- 				extraPaths = { "." },
+					-- 				-- 				-- useLibraryCodeForTypes = true,
+					-- 				-- 				-- diagnosticSeverityOverrides = {
+					-- 				-- 				-- 	reportUnusedImport = "none", -- 禁用未使用导入的提示
+					-- 				-- 				-- },
+					-- 				-- 				-- autoImportCompletions = true,
+					-- 				-- 				-- typeCheckingMode = "strict",
+					-- 				-- 				-- diagnosticMode = "workspace", -- 降低实时诊断频率
+					-- 				-- 				linting = { enabled = false }, -- 彻底关闭 Pyright 的 lint 功能
+					-- 				--
+					-- 				-- 				-- Ignore all files for analysis to exclusively use Ruff for linting
+					-- 				-- 				-- ignore = { "*" },
+					-- 			},
+					-- 		},
+					-- 	},
+				},
 
 				-- https://docs.astral.sh/ruff/editors/settings/
-				-- ruff = {
-				-- 	settings = {
-				-- 		init_options = {
-				-- 			settings = {
-				-- 				args = { "--fix-only", "--select=ALL" }, -- 全量规则 + 自动修复
-				-- 				organizeImports = true, -- 接管 imports 整理
-				-- 				lint = { enable = true },
-				-- 			},
-				-- 		},
-				-- 		-- 增强 Ruff 的代码操作优先级
-				-- 		-- capabilities = require("cmp_nvim_lsp").default_capabilities().textDocument.codeAction,
-				-- 	},
-				-- },
+				ruff = {
+					-- 	settings = {
+					-- 		init_options = {
+					-- 			settings = {
+					-- 				args = { "--fix-only", "--select=ALL" }, -- 全量规则 + 自动修复
+					-- 				organizeImports = true, -- 接管 imports 整理
+					-- 				lint = { enable = true },
+					-- 			},
+					-- 		},
+					-- 		-- 增强 Ruff 的代码操作优先级
+					-- 		-- capabilities = require("cmp_nvim_lsp").default_capabilities().textDocument.codeAction,
+					-- 	},
+				},
 
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -612,29 +548,42 @@ local plugins = {
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				-- ts_ls = {},
 				--
-				-- https://luals.github.io/wiki/settings/
+				stylua = {}, -- Used to format Lua code
+
+				-- Special Lua Config, as recommended by neovim help docs
 				lua_ls = {
-					-- cmd = {...},
-					-- filetypes = { ...},
-					-- capabilities = {},
+					on_init = function(client)
+						if client.workspace_folders then
+							local path = client.workspace_folders[1].name
+							if
+								path ~= vim.fn.stdpath("config")
+								and (vim.uv.fs_stat(path .. "/.luarc.json") or vim.uv.fs_stat(path .. "/.luarc.jsonc"))
+							then
+								return
+							end
+						end
+
+						client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
+							runtime = {
+								version = "LuaJIT",
+								path = { "lua/?.lua", "lua/?/init.lua" },
+							},
+							workspace = {
+								checkThirdParty = false,
+								-- NOTE: this is a lot slower and will cause issues when working on your own configuration.
+								--  See https://github.com/neovim/nvim-lspconfig/issues/3189
+								library = vim.tbl_extend("force", vim.api.nvim_get_runtime_file("", true), {
+									"${3rd}/luv/library",
+									"${3rd}/busted/library",
+								}),
+							},
+						})
+					end,
 					settings = {
-						-- Lua = {
-						-- 	-- workspace = {checkThirtyParty = false},
-						-- 	hint = {
-						-- 		enable = true, -- 确保启用 inlay hint
-						-- 		arrayIndex = "Enable", -- 数组索引提示
-						-- 		paramName = "All", -- 参数名提示
-						-- 		paramType = false, -- 参数类型提示
-						-- 		setType = true, -- 集合类型提示
-						-- 	},
-						-- 	completion = {
-						-- 		callSnippet = "Replace",
-						-- 	},
-						-- 	-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-						-- 	-- diagnostics = { disable = { 'missing-fields' } },
-						-- },
+						Lua = {},
 					},
 				},
+
 				-- sqls = {
 				-- 	settings = {
 				-- 		sqls = { -- https://github.com/sqls-server/sqls
@@ -676,7 +625,7 @@ local plugins = {
 				"lua_ls",
 				"pyright",
 				"ruff",
-				-- "jdtls",
+				-- "jdtls", -- jdtls目前为独立的插件（nvim-jdtls），不在mason系统中管理
 			})
 
 			-- Ensure the servers and tools above are installed
@@ -696,24 +645,31 @@ local plugins = {
 			-- })
 
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
-			require("mason-lspconfig").setup({
-				ensure_installed = {},
-				automatic_installation = false,
-				handlers = {
-					function(server_name)
-						local server = servers[server_name] or {}
-						-- This handles overriding only values explicitly passed
-						-- by the server configuration above. Useful when disabling
-						-- certain features of an LSP (for example, turning off formatting for ts_ls)
-						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 
-						-- Mason中安装的LSP会逐个进入，为避免jdtls被二次启动此处跳过，改为在nvim-jdtls插件中配置
-						if server_name ~= "jdtls" then
-							require("lspconfig")[server_name].setup(server)
-						end
-					end,
-				},
-			})
+			-- require("mason-lspconfig").setup({
+			-- 	ensure_installed = {},
+			-- 	automatic_installation = false,
+			-- 	handlers = {
+			-- 		function(server_name)
+			-- 			local server = servers[server_name] or {}
+			-- 			-- This handles overriding only values explicitly passed
+			-- 			-- by the server configuration above. Useful when disabling
+			-- 			-- certain features of an LSP (for example, turning off formatting for ts_ls)
+			-- 			server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+			--
+			-- 			-- jdtls目前为独立的插件（nvim-jdtls），不在mason系统中管理
+			-- 			if server_name ~= "jdtls" then
+			-- 				require("lspconfig")[server_name].setup(server)
+			-- 			end
+			-- 		end,
+			-- 	},
+			-- })
+
+			-- 启用LSP
+			for name, server in pairs(servers) do
+				vim.lsp.config(name, server)
+				vim.lsp.enable(name)
+			end
 		end,
 	},
 	-- { -- hover信息美化
@@ -1030,7 +986,8 @@ local plugins = {
 										choices = {
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
 											"Qwen/Qwen3-Next-80B-A3B-Instruct",
-											"ZhipuAI/GLM-4.7",
+											"ZhipuAI/GLM-5",
+											"MiniMax/MiniMax-M2.5",
 											"moonshotai/Kimi-K2.5",
 											"Qwen/Qwen3-Coder-480B-A35B-Instruct",
 											"deepseek-ai/DeepSeek-V3.2",
@@ -1110,11 +1067,12 @@ local plugins = {
 										default = "deepseek-ai/DeepSeek-V3.2",
 										choices = {
 											"deepseek-ai/DeepSeek-V3.2",
-											-- "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+											"stepfun-ai/Step-3.5-Flash",
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
 											"Pro/deepseek-ai/DeepSeek-V3.2",
-											"Pro/zai-org/GLM-4.7",
-											"Pro/MiniMaxAI/MiniMax-M2.1",
+											"Pro/zai-org/GLM-5",
+											"Pro/moonshotai/Kimi-K2.5",
+											"Pro/MiniMaxAI/MiniMax-M2.5",
 										},
 									},
 								},
@@ -1453,12 +1411,14 @@ local plugins = {
 			{
 				"<leader>bf",
 				function()
-					require("conform").format({ async = true })
+					require("conform").format({ async = true, lsp_format = "fallback" })
 				end,
 				mode = "",
 				desc = "buffer: [f]ormat",
 			},
 		},
+		---@module 'conform'
+		---@type conform.setupOpts
 		opts = {
 			formatters_by_ft = {
 				lua = { "stylua" },
@@ -1491,6 +1451,7 @@ local plugins = {
 
 			-- Customize formatters
 			formatters = {
+				lua = { "stylua" },
 				shfmt = {
 					prepend_args = { "-i", "2" },
 				},
@@ -1735,6 +1696,9 @@ local plugins = {
 	},
 	{ -- gitsigns：Adds git related signs to the gutter, as well as utilities for managing changes
 		"lewis6991/gitsigns.nvim", -- 左侧git提示
+		---@module 'gitsigns'
+		---@type Gitsigns.Config
+		---@diagnostic disable-next-line: missing-fields
 		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			signs = {
@@ -1767,8 +1731,9 @@ local plugins = {
 	},
 	{ -- telescope, Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
-		-- event = "VeryLazy",
-		lazy = true,
+		enabled = true,
+		event = "VimEnter",
+		-- lazy = true,
 		keys = {
 			--通过打开会话窗口，实现telescope延迟加载的效果
 			{ "<leader>wo", "<cmd>AutoSession search<CR>", desc = "session: [o]pen" },
@@ -1906,9 +1871,10 @@ local plugins = {
 			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "search: [k]eymap" })
 			vim.keymap.set("n", "<leader>so", builtin.oldfiles, { desc = "search: [o]ld file" })
 			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "search: [r]esume" })
-			vim.keymap.set("n", "<leader>ss", builtin.grep_string, { desc = "search: [s]tring" })
+			vim.keymap.set({ "n", "v" }, "<leader>ss", builtin.grep_string, { desc = "search: [s]tring" })
 			vim.keymap.set("n", "<leader>st", builtin.builtin, { desc = "search: [t]elescope" })
 			vim.keymap.set("n", "<leader>sb", builtin.buffers, { desc = "search: [b]uffer" })
+			vim.keymap.set("n", "<leader>sc", builtin.commands, { desc = "search: [c]ommand" })
 			-- vim.keymap.set("n", "<leader>su", "<cmd>Telescope undo<cr>", { desc = "search: [u]ndo tree" })
 
 			-- Slightly advanced example of overriding default behavior and theme
@@ -2409,44 +2375,16 @@ local plugins = {
 	{ -- Useful plugin to show you pending keybinds.
 		"folke/which-key.nvim",
 		event = "VimEnter", -- Sets the loading event to 'VimEnter'
+		---@module 'which-key'
+		---@type wk.Opts
+		---@diagnostic disable-next-line: missing-fields
 		opts = {
 			delay = 0,
 			sort = { "desc" },
 			icons = {
 				-- set icon mappings to true if you have a Nerd Font
 				mappings = vim.g.have_nerd_font,
-				-- If you are using a Nerd Font: set icons.keys to an empty table which will use the
-				-- default whick-key.nvim defined Nerd Font icons, otherwise define a string table
-				keys = vim.g.have_nerd_font and {} or {
-					Up = "<Up> ",
-					Down = "<Down> ",
-					Left = "<Left> ",
-					Right = "<Right> ",
-					C = "<C-…> ",
-					M = "<M-…> ",
-					D = "<D-…> ",
-					S = "<S-…> ",
-					CR = "<CR> ",
-					Esc = "<Esc> ",
-					ScrollWheelDown = "<ScrollWheelDown> ",
-					ScrollWheelUp = "<ScrollWheelUp> ",
-					NL = "<NL> ",
-					BS = "<BS> ",
-					Space = "<Space> ",
-					Tab = "<Tab> ",
-					F1 = "<F1>",
-					F2 = "<F2>",
-					F3 = "<F3>",
-					F4 = "<F4>",
-					F5 = "<F5>",
-					F6 = "<F6>",
-					F7 = "<F7>",
-					F8 = "<F8>",
-					F9 = "<F9>",
-					F10 = "<F10>",
-					F11 = "<F11>",
-					F12 = "<F12>",
-				},
+
 				-- 自定义关键词图标
 				rules = {
 					{ pattern = "diag", icon = "󱖫 ", color = "green" },

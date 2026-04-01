@@ -33,6 +33,7 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave" }, {
 	callback = set_ime,
 })
 
+-- 命令行及搜索模式可以切换输入法
 vim.api.nvim_create_autocmd({ "CmdlineEnter", "CmdlineLeave" }, {
 	group = ime_group,
 	pattern = { ":", "/", "?" },

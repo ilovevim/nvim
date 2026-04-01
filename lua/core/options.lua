@@ -29,9 +29,10 @@ vim.o.wrap = false
 -- 折叠相关配置
 vim.o.foldcolumn = "0" -- '0' is not bad
 -- vim.o.foldmethod = "indent"
-vim.o.foldmethod = "expr"
+-- vim.o.foldmethod = "expr"
 -- vim.o.foldexpr = "nvim_treesitter#foldexpr()"
-vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- 在treesitter插件中配置折叠表达式
+-- vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 -- vim.o.foldlevel = 1
 vim.o.foldlevelstart = 1
@@ -70,6 +71,8 @@ vim.o.breakindent = true
 
 -- Save undo history
 vim.o.undofile = true
+vim.o.undolevels = 10000
+vim.o.undoreload = 10000
 
 -- 系统剪贴板
 -- Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -91,6 +94,7 @@ vim.o.termguicolors = true
 vim.o.signcolumn = "number"
 -- vim.cmd[[colorscheme tokyonight-moon]]
 vim.o.colorcolumn = "80,120"
+vim.o.background = "dark"
 
 -- 滚动时上下预留行数，极大值可确保n/N查找时定位到屏幕中间
 -- vim.o.scrolloff = 999
@@ -139,6 +143,49 @@ vim.env.PATH = "c:/Program Files/Git/usr/bin" .. ";" .. vim.env.PATH
 -- 		vim.diagnostic.open_float({ header = "", scope = "line" })
 -- 	end,
 -- })
+
+-- Diagnostic Config
+-- See :help vim.diagnostic.Opts
+-- vim.diagnostic.config({
+-- 	severity_sort = true,
+-- 	float = { border = "rounded", source = "if_many" },
+-- 	underline = { severity = { min = vim.diagnostic.severity.WARN } },
+-- 	signs = vim.g.have_nerd_font and {
+-- 		text = {
+-- 			[vim.diagnostic.severity.ERROR] = "󰅚 ",
+-- 			[vim.diagnostic.severity.WARN] = "󰀪 ",
+-- 			[vim.diagnostic.severity.INFO] = "󰋽 ",
+-- 			[vim.diagnostic.severity.HINT] = "󰌶 ",
+-- 		},
+-- 	} or {},
+-- 	virtual_text = {
+-- 		source = "if_many",
+-- 		spacing = 2,
+-- 		format = function(diagnostic)
+-- 			local diagnostic_message = {
+-- 				[vim.diagnostic.severity.ERROR] = diagnostic.message,
+-- 				[vim.diagnostic.severity.WARN] = diagnostic.message,
+-- 				[vim.diagnostic.severity.INFO] = diagnostic.message,
+-- 				[vim.diagnostic.severity.HINT] = diagnostic.message,
+-- 			}
+-- 			return diagnostic_message[diagnostic.severity]
+-- 		end,
+-- 	},
+-- })
+
+vim.diagnostic.config({
+	update_in_insert = false,
+	severity_sort = true,
+	float = { border = "rounded", source = "if_many" },
+	underline = { severity = { min = vim.diagnostic.severity.WARN } },
+
+	-- Can switch between these as you prefer
+	virtual_text = true, -- Text shows up at the end of the line
+	virtual_lines = false, -- Text shows up underneath the line, with virtual lines
+
+	-- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
+	jump = { float = true },
+})
 
 -- 配置python可执行文件，需要安装pynvim，以便可运行python开发的插件
 vim.g.python3_host_prog = "C:/Users/luocm/AppData/Local/Programs/Python/Python39/python.exe"

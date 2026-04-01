@@ -11,12 +11,13 @@ keymap.set("n", "N", "<cmd>call HiSearch('N')<CR>")
 
 -- 诊断相关映射，[d和]d已经被默认映射了，此处重新映射是为了跳转后显示诊断浮窗（float=true）
 keymap.set("n", "<leader>dd", vim.diagnostic.setloclist, { desc = "diag: [d]ocument" })
-keymap.set("n", "[d", function()
-	vim.diagnostic.jump({ count = -1, float = true })
-end, { desc = "diag: prev" })
-keymap.set("n", "]d", function()
-	vim.diagnostic.jump({ count = 1, float = true })
-end, { desc = "diag: next" })
+-- 在diagnostic.config已经打开了float=true，无需额外映射
+-- keymap.set("n", "[d", function()
+-- 	vim.diagnostic.jump({ count = -1, float = true })
+-- end, { desc = "diag: prev" })
+-- keymap.set("n", "]d", function()
+-- 	vim.diagnostic.jump({ count = 1, float = true })
+-- end, { desc = "diag: next" })
 keymap.set("n", "<leader>dl", function()
 	vim.diagnostic.open_float()
 end, { desc = "diag: [l]ine" })
@@ -38,6 +39,9 @@ end, { desc = "diag: [e]nable" })
 -- 注释，支持[count]gcc
 keymap.set("n", "<c-cr>", "gcc", { remap = true })
 keymap.set("i", "<c-cr>", "<esc>gcc", { remap = true })
+
+-- 设置只读且不可更改
+keymap.set("n", "<leader>br", "<cmd>set readonly nomodifiable<cr>", { desc = "buffer: [r]eadonly" })
 
 -- 若干快捷键
 -- 不要映射<tab>，<c-i>与它键码相同，会受影响
