@@ -2191,13 +2191,20 @@ local plugins = {
 			-- vim.g.vimtex_view_method = "zathura"
 		end,
 	},
-	{ -- markdown插件（md文件、tex公式）
-		"iamcco/markdown-preview.nvim",
-		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-		ft = { "markdown" },
-		build = function()
-			vim.fn["mkdp#util#install"]()
-		end,
+	-- { -- markdown插件（md文件、tex公式），升级到nvim0.12后不能用了
+	-- 	"iamcco/markdown-preview.nvim",
+	-- 	cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+	-- 	ft = { "markdown" },
+	-- 	build = function()
+	-- 		vim.fn["mkdp#util#install"]()
+	-- 	end,
+	-- },
+	{ -- 预览 Markdown/AsciiDoc/SVG，纯lua实现无外部依赖
+		"brianhuster/live-preview.nvim",
+		cmd = { "LivePreview" },
+		dependencies = {
+			"nvim-telescope/telescope.nvim",
+		},
 	},
 	{ -- json插件
 		"gennaro-tedesco/nvim-jqx",
