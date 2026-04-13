@@ -727,15 +727,7 @@ local plugins = {
 				opts = {},
 			},
 			"folke/lazydev.nvim",
-			{ -- AI辅助
-				"luozhiya/fittencode.nvim",
-				-- event = "VeryLazy",
-				event = { "BufReadPre", "BufNewFile" },
-				opts = {
-					-- Default keymaps
-					use_default_keymaps = true,
-				},
-			},
+
 			"xzbdmw/colorful-menu.nvim",
 		},
 
@@ -776,6 +768,10 @@ local plugins = {
 				--
 				-- See :h blink-cmp-config-keymap for defining your own keymap
 				preset = "default",
+
+				-- Tab键与fittencode冲突了，改为其他键
+				["<Tab>"] = false, -- or {}
+				["<C-Tab>"] = { "snippet_forward", "fallback" },
 
 				-- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
 				--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -861,7 +857,18 @@ local plugins = {
 		},
 		opts_extend = { "sources.default" },
 	},
-
+	{ -- AI辅助
+		"luozhiya/fittencode.nvim",
+		-- event = "VeryLazy",
+		event = { "BufReadPre", "BufNewFile" },
+		opts = {
+			-- Default keymaps
+			use_default_keymaps = true,
+			-- log = {
+			-- 	level = vim.log.levels.TRACE,
+			-- },
+		},
+	},
 	-- { -- 写代码AI辅助
 	-- 	"tzachar/cmp-tabnine",
 	-- 	event = "InsertEnter",
