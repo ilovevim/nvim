@@ -55,10 +55,13 @@ return {
 			map("n", "<leader>hd", gitsigns.diffthis, { desc = "[d]iff against index" })
 			map("n", "<leader>hD", function()
 				gitsigns.diffthis("@")
-			end, { desc = "[D]iff against last commit" })
+			end, { desc = "[D]iff against commit" })
 			-- Toggles
 			map("n", "<leader>ht", gitsigns.toggle_current_line_blame, { desc = "[t]oggle blame line" })
 			map("n", "<leader>hT", gitsigns.preview_hunk_inline, { desc = "[T]oggle deleted" })
+
+			-- 自定义命令（交互式控制提交hunk
+			map("n", "<leader>ha", "<cmd>term git add -p %<cr>", { desc = "[a]dd with patch" })
 		end,
 	},
 }
