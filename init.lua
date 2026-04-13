@@ -212,6 +212,7 @@ local plugins = {
 				"query",
 				"vim",
 				"vimdoc",
+				"yaml",
 			}
 			require("nvim-treesitter").install(parsers)
 			vim.api.nvim_create_autocmd("FileType", {
@@ -665,10 +666,11 @@ local plugins = {
 			-- 	},
 			-- })
 
-			-- 启用LSP
 			for name, server in pairs(servers) do
 				vim.lsp.config(name, server)
+				-- if name ~= "jdtls" then
 				vim.lsp.enable(name)
+				-- end
 			end
 		end,
 	},
