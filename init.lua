@@ -976,7 +976,7 @@ local plugins = {
 			require("codecompanion").setup({
 				-- opts = { language = "Chinese", log_level = "INFO" },
 				-- tools = { enabled = false },
-				strategies = {
+				interactions = {
 					-- 默认用魔搭，硅基流动的模型相对贵，openrouter免费模型频繁下线
 					chat = {
 						adapter = "_modelscope",
@@ -985,7 +985,7 @@ local plugins = {
 								-- 模型名称类似于abc/def/ghi，只取最后一个ghi
 								return "Ai: " .. adapter.name .. "." .. adapter.model.name:match("([^/]+)$")
 							end,
-							user = "Me",
+							user = "Me: CodeCompanion",
 						},
 						variables = {},
 					},

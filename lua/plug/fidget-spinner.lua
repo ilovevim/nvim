@@ -59,7 +59,7 @@ function M:llm_role_title(adapter)
 		-- 模型名称类似于abc/def/ghi，只取最后一个ghi
 		table.insert(parts, "." .. adapter.model:match("([^/]+)$"))
 	end
-	return table.concat(parts, " ")
+	return table.concat(parts, "")
 end
 
 function M:report_exit_status(handle, request)
