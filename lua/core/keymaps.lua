@@ -42,6 +42,7 @@ keymap.set("i", "<c-cr>", "<esc>gcc", { remap = true })
 
 -- 设置只读且不可更改
 keymap.set("n", "<leader>br", "<cmd>set readonly nomodifiable<cr>", { desc = "buffer: [r]eadonly" })
+keymap.set("n", "<leader>bw", "<cmd>set wrap!<cr>", { desc = "buffer: [w]rap!" })
 
 -- 若干快捷键
 -- 不要映射<tab>，<c-i>与它键码相同，会受影响
