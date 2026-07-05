@@ -71,6 +71,13 @@ return { -- NOTE: Yes, you can install new plugins here!
 			desc = "debug: step over",
 		},
 		{
+			"<leader>dl",
+			function()
+				require("dap").run_last()
+			end,
+			desc = "debug: [l]ast",
+		},
+		{
 			"<M-L>",
 			function()
 				require("dap").run_to_cursor()

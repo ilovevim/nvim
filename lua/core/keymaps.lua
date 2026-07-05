@@ -1,6 +1,6 @@
 local keymap = vim.keymap
 -- 取消高亮
-keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+-- keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- vim-highlighter插件映射，当nohlsearch时，高亮单词的前进后退，否则为?/搜索词的前进/后退
 keymap.set("n", "n", "<cmd>call HiSearch('n')<CR>")
@@ -18,9 +18,9 @@ keymap.set("n", "<leader>dd", vim.diagnostic.setloclist, { desc = "diag: [d]ocum
 -- keymap.set("n", "]d", function()
 -- 	vim.diagnostic.jump({ count = 1, float = true })
 -- end, { desc = "diag: next" })
-keymap.set("n", "<leader>dl", function()
+keymap.set("n", "<leader>dL", function()
 	vim.diagnostic.open_float()
-end, { desc = "diag: [l]ine" })
+end, { desc = "diag: [L]ine" })
 keymap.set("n", "<leader>de", function()
 	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "diag: [e]nable" })

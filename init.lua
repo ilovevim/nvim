@@ -676,6 +676,7 @@ local plugins = {
 	},
 	{ -- LSP文件操作
 		"antosha417/nvim-lsp-file-operations",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			-- Uncomment whichever supported plugin(s) you use
@@ -862,7 +863,7 @@ local plugins = {
 	{ -- AI辅助
 		"luozhiya/fittencode.nvim",
 		-- event = "VeryLazy",
-		event = { "BufReadPre", "BufNewFile" },
+		-- event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			-- Default keymaps
 			use_default_keymaps = true,
@@ -984,35 +985,61 @@ local plugins = {
 						adapter = "_modelscope",
 						roles = {
 							llm = function(adapter)
-								-- 模型名称类似于abc/def/ghi，只取最后一个ghi
-								return "Ai: " .. adapter.name .. "." .. adapter.model.name:match("([^/]+)$")
+								local info = "Ai: " .. adapter.name
+								if adapter.model then
+									-- model.name类似于moonshotai/Kimi-K2.6，取最后一个Kimi-K2.6
+									info = info .. "." .. adapter.model.name:match("([^/]+)$")
+								end
+								return info
 							end,
 							user = "Me: CodeCompanion",
 						},
 						variables = {},
 					},
 					inline = { adapter = "_modelscope" },
+					cli = {
+						agent = "opencode",
+						agents = {
+							opencode = {
+								cmd = "opencode",
+								args = {},
+								description = "OpenCode CLI",
+								provider = "terminal",
+							},
+						},
+					},
 				},
 				adapters = {
 					http = {
 						_modelscope = function()
-							return require("codecompanion.adapters").extend("openai_compatible", {
+							return require("codecompanion.adapters").extend("openai", {
+								name = "modelscope",
+								url = "https://api-inference.modelscope.cn/v1/chat/completions",
 								env = {
-									url = "https://api-inference.modelscope.cn",
+									-- url = "https://api-inference.modelscope.cn/v1",
 									api_key = "MODELSCOPE_ACCESS_TOKEN",
-									chat_url = "/v1/chat/completions",
+									-- chat_url = "/chat/completions",
 								},
 								schema = {
 									model = {
 										default = "Qwen/Qwen3-Coder-30B-A3B-Instruct",
 										choices = {
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
-											"Qwen/Qwen3-Next-80B-A3B-Instruct",
-											"ZhipuAI/GLM-5",
-											"MiniMax/MiniMax-M2.5",
-											"moonshotai/Kimi-K2.5",
 											"Qwen/Qwen3-Coder-480B-A35B-Instruct",
-											"deepseek-ai/DeepSeek-V3.2",
+											"Qwen/Qwen3.5-122B-A10B",
+											"Qwen/Qwen3.5-397B-A17B",
+											"Qwen/Qwen3.5-27B",
+											"ZhipuAI/GLM-5",
+											"ZhipuAI/GLM-5.1",
+											"ZhipuAI/GLM-5.2",
+											"MiniMax/MiniMax-M2.5",
+											"MiniMax/MiniMax-M2.7",
+											"MiniMax/MiniMax-M3",
+											"moonshotai/Kimi-K2.5",
+											"moonshotai/Kimi-K2.6",
+											"moonshotai/Kimi-K2.7-Code",
+											"deepseek-ai/DeepSeek-V4-Flash",
+											"deepseek-ai/DeepSeek-V4-Pro",
 										},
 									},
 								},
@@ -1078,25 +1105,40 @@ local plugins = {
 							})
 						end,
 						_siliconflow = function()
-							return require("codecompanion.adapters").extend("openai_compatible", {
+							return require("codecompanion.adapters").extend("openai", {
+								name = "siliconflow",
+								url = "https://api.siliconflow.cn/v1/chat/completions",
 								env = {
-									url = "https://api.siliconflow.cn",
+									-- url = "https://api.siliconflow.cn/v1",
 									api_key = "SILICONFLOW_API_KEY",
-									chat_url = "/v1/chat/completions",
+									-- chat_url = "/chat/completions",
 								},
 								schema = {
 									model = {
 										default = "deepseek-ai/DeepSeek-V3.2",
 										choices = {
 											"deepseek-ai/DeepSeek-V3.2",
-											"stepfun-ai/Step-3.5-Flash",
+											-- "Pro/deepseek-ai/DeepSeek-V3.2",
+											"deepseek-ai/DeepSeek-V4-Flash",
 											"Qwen/Qwen3-Coder-30B-A3B-Instruct",
-											"Pro/deepseek-ai/DeepSeek-V3.2",
+											"Qwen/Qwen3.6-35B-A3B",
+											"Qwen/Qwen3.6-27B",
 											"Pro/zai-org/GLM-5",
+											"Pro/zai-org/GLM-5.1",
 											"Pro/moonshotai/Kimi-K2.5",
+											"Pro/moonshotai/Kimi-K2.6",
 											"Pro/MiniMaxAI/MiniMax-M2.5",
 										},
 									},
+								},
+							})
+						end,
+						_opencode = function()
+							return require("codecompanion.adapters").extend("openai", {
+								name = "opencode",
+								url = "https://opencode.ai/zen/v1/chat/completions",
+								env = {
+									api_key = "OPENCODE_API_KEY",
 								},
 							})
 						end,
@@ -1127,15 +1169,17 @@ local plugins = {
 							-- save_chat_keymap = "sc",
 						},
 					},
+					-- https://github.com/olimorris/codecompanion.nvim/discussions/640,
+					spinner = {},
 				},
 			})
 
 			-- 自定义快捷键
 			vim.keymap.set(
 				{ "n", "v" },
-				"<leader>ca",
+				"<leader>cA",
 				"<cmd>CodeCompanionActions<cr>",
-				{ noremap = true, silent = true, desc = "ai: [a]ction" }
+				{ noremap = true, silent = true, desc = "ai: [A]ction" }
 			)
 			-- vim.keymap.set(
 			-- 	{ "n", "v" },
@@ -1144,6 +1188,32 @@ local plugins = {
 			-- 	{ noremap = true, silent = true, desc = "ai: [c]hat" }
 			-- )
 			vim.keymap.set("v", "gP", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
+			vim.keymap.set("n", "<LocalLeader>cc", function()
+				return require("codecompanion").toggle_cli()
+			end, { desc = "CLI: [c]li toggle" })
+
+			vim.keymap.set({ "n", "v" }, "<LocalLeader>cp", function()
+				return require("codecompanion").cli({ prompt = true })
+			end, { desc = "CLI: [p]rompt editor" })
+
+			vim.keymap.set({ "n", "v" }, "<LocalLeader>ca", function()
+				return require("codecompanion").cli("#{this}", { focus = false })
+			end, { desc = "CLI: [a]dd context" })
+
+			vim.keymap.set("n", "<LocalLeader>cd", function()
+				return require("codecompanion").cli(
+					"#{diagnostics} Can you fix these?",
+					{ focus = false, submit = true }
+				)
+			end, { desc = "CLI: [d]iagnostics fix" })
+
+			vim.keymap.set("n", "<LocalLeader>ct", function()
+				return require("codecompanion").cli(
+					"#{terminal} Sharing the output from the terminal. Can you fix it?",
+					{ focus = false, submit = true }
+				)
+			end, { desc = "CLI: [t]erminal fix" })
+
 			-- Expand 'cc' into 'CodeCompanion' in the command line
 			vim.cmd([[cab cc CodeCompanion]])
 
@@ -1171,14 +1241,15 @@ local plugins = {
 			vim.keymap.set("n", "<leader>cq", show_model_quota, { desc = "ai: [q]uota" })
 
 			-- 进度提醒
-			require("plug.fidget-spinner"):init()
+			-- require("plug.fidget-spinner"):init()
 		end,
 
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
 			"ravitemer/codecompanion-history.nvim",
-			"j-hui/fidget.nvim",
+			-- "j-hui/fidget.nvim",
+			"franco-ruggeri/codecompanion-spinner.nvim",
 		},
 	},
 	{
@@ -2536,8 +2607,10 @@ local plugins = {
 		"ThePrimeagen/refactoring.nvim",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"nvim-treesitter/nvim-treesitter",
+			-- "nvim-lua/plenary.nvim",
+			-- "nvim-treesitter/nvim-treesitter",
+			-- 只依赖async库了
+			"lewis6991/async.nvim",
 		},
 		-- lazy = false,
 		opts = {},
@@ -2744,7 +2817,7 @@ local plugins = {
 			local sticks = require("buffer-sticks")
 			sticks.setup({
 				show_indicators = false,
-				position = "center",
+				position = "right",
 				active_char = "──",
 				inactive_char = "─",
 				alternate_char = "─",
@@ -2753,7 +2826,7 @@ local plugins = {
 					show = { "label", "filename" },
 					sort = { field = "label" },
 					align = {
-						label = "right",
+						label = "left",
 						filename = "left",
 					},
 					separator = " ",
